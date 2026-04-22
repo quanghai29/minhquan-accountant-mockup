@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BMS — Business Management System</title>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body, #root { height: 100%; font-family: 'Be Vietnam Pro', sans-serif; overflow: hidden; }
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+/* Tweaks panel */
+.tweaks-panel { position:fixed; bottom:20px; right:20px; z-index:9999; background:#fff; border-radius:12px; padding:16px; box-shadow:0 8px 32px rgba(0,0,0,0.18); width:220px; display:none; }
+.tweaks-panel.open { display:block; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<!-- Shared components -->
+<script src="shared.js"></script>
+<script src="Layout.js"></script>
+
+<!-- Pages -->
+<script src="pages/Login.js"></script>
+<script src="pages/Dashboard.js"></script>
+<script src="pages/DanhMuc.js"></script>
+<script src="pages/Kho.js"></script>
+<script src="pages/TienThuChi.js"></script>
+<script src="pages/MuaHang.js"></script>
+<script src="pages/BanHang.js"></script>
+<script src="pages/BaoCao.js"></script>
+
+<script type="text/babel">
+
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "accent": "#0d9488"
+}/*EDITMODE-END*/;
+
+// Page → Component map
+const PAGE_MAP = {
+  dashboard:      () => React.createElement(PageDashboard, { setPage }),
+  // Danh mục
+  hanghoa:        () => React.createElement(PageHangHoa, null),
+  ncc:            () => React.createElement(PageNCC, null),
+  khachhang:      () => React.createElement(PageKhachHang, null),
+  nhanvien:       () => React.createElement(PageNhanVien, null),
+  phongban:       () => React.createElement(PagePhongBan, null),
+  kho_dm:         () => React.createElement(PageKhoDM, null),
+  dvt:            () => React.createElement(PageDVT, null),
+  nhom_vthh:      () => React.createElement(PageNhomVTHH, null),
+  tk_nganhang:    () => React.createElement(PageTKNganHang, null),
+  // Kho
+  nhapkho:        () => React.createElement(PageNhapKho, null),
+  xuatkho:        () => React.createElement(PageXuatKho, null),
+  // Tiền thu chi
+  tienmat_thu:    () => React.createElement(PageTienMatThu, null),
+  tienmat_chi:    () => React.createElement(PageTienMatChi, null),
+  tiengui_thu:    () => React.createElement(PageTienGuiThu, null),
+  tiengui_chi:    () => React.createElement(PageTienGuiChi, null),
+  // Mua hàng
+  muahang_list:   () => React.createElement(PageMuaHang, null),
+  tralai_mua:     () => React.createElement(PageTraLaiMua, null),
+  // Bán hàng
+  donhang:        () => React.createElement(PageDonHang, null),
+  chungtubh:      () => React.createElement(PageChungTuBH, null),
+  tralai_ban:     () => React.createElement(PageTraLaiBan, null),
+  xuatkho_bh:     () => React.createElement(PageXuatKhoBH, null),
+  // Báo cáo
+  bc_tonkho:      () => React.createElement(PageBCTonKho, null),
+  bc_doanhthu:    () => React.createElement(PageBCDoanhThu, null),
+  bc_donhang:     () => React.createElement(PageBCDonHang, null),
+  bc_congno_thu:  () => React.createElement(PageBCCongNoThu, null),
+  bc_congno_tra:  () => React.createElement(PageBCCongNoTra, null),
+  bc_taichinh:    () => React.createElement(PageBCTaiChinh, null),
+};
+
+// We need setPage accessible from the map, define it at app level
+let setPage;
+
+const App = () => {
+  const saved = (() => { try { return localStorage.getItem('bms_page') || 'login'; } catch { return 'login'; } })();
+  const [page, _setPage] = React.useState(saved);
+  const [tweakOpen, setTweakOpen] = React.useState(false);
+  const [tweaks, setTweaks] = React.useState(TWEAK_DEFAULTS);
+
+  // Make setPage available to page map
+  setPage = _setPage;
+
+  // Override T.accent with tweaks
+  React.useEffect(() => {
+    T.accent = tweaks.accent;
+  }, [tweaks.accent]);
+
+  React.useEffect(() => {
+    localStorage.setItem('bms_page', page);
+  }, [page]);
+
+  // Tweaks protocol
+  React.useEffect(() => {
+    window.addEventListener('message', e => {
+      if (e.data?.type === '__activate_edit_mode') setTweakOpen(true);
+      if (e.data?.type === '__deactivate_edit_mode') setTweakOpen(false);
+    });
+    window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+  }, []);
+
+  const updateTweak = (key, val) => {
+    const next = { ...tweaks, [key]: val };
+    setTweaks(next);
+    window.parent.postMessage({ type: '__edit_mode_set_keys', edits: { [key]: val } }, '*');
+  };
+
+  if (page === 'login') {
+    return React.createElement('div', { style: { height: '100vh', position: 'relative' } },
+      React.createElement(PageLogin, { onLogin: () => _setPage('dashboard') })
+    );
+  }
+
+  const renderPage = PAGE_MAP[page] ? PAGE_MAP[page]() : React.createElement('div', { style:{ padding:40, color:'#6b7280', fontSize:14 } }, `Trang "${page}" đang được phát triển.`);
+
+  return React.createElement('div', { style: { height: '100vh', position: 'relative', overflow: 'hidden' } },
+    React.createElement(Layout, { page, setPage: _setPage },
+      renderPage
+    ),
+
+    // Tweaks panel
+    tweakOpen && React.createElement('div', { style:{ position:'fixed', bottom:20, right:20, zIndex:9999, background:'#fff', borderRadius:12, padding:18, boxShadow:'0 8px 32px rgba(0,0,0,0.18)', width:220 } },
+      React.createElement('div', { style:{ fontSize:13, fontWeight:700, marginBottom:12, color:'#111' } }, 'Tweaks'),
+      React.createElement('div', { style:{ fontSize:11.5, color:'#6b7280', marginBottom:8, fontWeight:600 } }, 'Màu nhấn (Accent)'),
+      React.createElement('div', { style:{ display:'flex', gap:8, flexWrap:'wrap' } },
+        ['#0d9488','#2563eb','#7c3aed','#dc2626','#ea580c','#16a34a'].map(c =>
+          React.createElement('div', { key:c, onClick:()=>updateTweak('accent', c),
+            style:{ width:28, height:28, background:c, borderRadius:6, cursor:'pointer', border: tweaks.accent===c ? '2.5px solid #111' : '2px solid transparent', boxShadow: tweaks.accent===c ? `0 0 0 2px #fff, 0 0 0 4px ${c}` : 'none', transition:'all .15s' }
+          })
+        )
+      )
+    )
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+</script>
+</body>
+</html>
