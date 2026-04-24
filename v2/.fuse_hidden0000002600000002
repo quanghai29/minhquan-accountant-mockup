@@ -1,0 +1,277 @@
+// Layout.js — App shell: header + icon sidebar + sub-nav panel + main
+// Figma-inspired B&W chrome: pill geometry, mono labels, dashed focus.
+
+window.Layout = function ({ page, setPage, role, setRole, onLogout, children }) {
+  const nav = window.navForRole(role);
+
+  // Determine active module
+  const activeModule = window.SUB_TO_PARENT[page] || page;
+  const mod = nav.find(n => n.key === activeModule) || nav[0];
+
+  const goto = (key) => setPage(key);
+  const roleInfo = window.ROLES.find(r => r.key === role) || window.ROLES[0];
+
+  const [roleOpen, setRoleOpen] = React.useState(false);
+
+  return React.createElement('div', {
+    style: {
+      display: 'flex', height: '100vh', flexDirection: 'column',
+      fontFamily: T.font, background: T.bg, letterSpacing: '-0.005em'
+    }
+  },
+    // ── Top header ──────────────────────────────────────────────────
+    React.createElement('div', {
+      style: {
+        height: 60, background: T.surface, display: 'flex', alignItems: 'center',
+        padding: '0 24px', gap: 18, flexShrink: 0,
+        borderBottom: `1px solid ${T.border}`, zIndex: 10
+      }
+    },
+      // Logo + brand
+      React.createElement('div', {
+        style: { display: 'flex', alignItems: 'center', gap: 12, cursor: 'pointer' },
+        onClick: () => goto('dashboard')
+      },
+        React.createElement(LogoMark, { size: 32 }),
+        React.createElement('div', { style: { display: 'flex', flexDirection: 'column', lineHeight: 1.1 } },
+          React.createElement('span', { style: { color: T.text, fontWeight: 500, fontSize: 15, letterSpacing: '-0.02em' } }, 'MQtex BMS'),
+          React.createElement('span', { className: 'mono-label', style: { color: T.textFaint, fontSize: 9.5 } }, 'Business Management')
+        )
+      ),
+      React.createElement('div', { style: { width: 1, height: 26, background: T.border } }),
+
+      // Company + year
+      React.createElement('div', {
+        style: { display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }
+      },
+        React.createElement('span', { style: { fontSize: 13, color: T.text, fontWeight: 400, letterSpacing: '-0.01em' } },
+          'CÔNG TY TNHH SÀI GÒN MQTEX'),
+        React.createElement(Ic, { name: 'chevdown', size: 12, color: T.textFaint, strokeWidth: 1.4 })
+      ),
+      React.createElement('span', {
+        className: 'mono-label',
+        style: {
+          padding: '4px 12px', background: T.surface2, color: T.text,
+          borderRadius: 'var(--r-pill)', fontSize: 10.5, fontWeight: 400,
+          border: `1px solid ${T.border}`
+        }
+      }, 'NĂM 2026'),
+
+      React.createElement('div', { style: { flex: 1 } }),
+
+      // Global search — pill shaped per Figma
+      React.createElement('div', {
+        style: {
+          display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px',
+          background: T.surface2, border: `1px solid ${T.border}`,
+          borderRadius: 'var(--r-pill)', minWidth: 300
+        }
+      },
+        React.createElement(Ic, { name: 'search', size: 14, color: T.textMute, strokeWidth: 1.4 }),
+        React.createElement('input', {
+          placeholder: 'Tìm kiếm chứng từ, khách hàng, hàng hóa...',
+          style: {
+            border: 'none', outline: 'none', fontSize: 13,
+            background: 'transparent', flex: 1, fontFamily: T.font, color: T.text,
+            letterSpacing: '-0.005em', fontWeight: 400
+          }
+        })
+      ),
+
+      // Bell + Role switcher
+      React.createElement('div', { style: { display: 'flex', gap: 12, alignItems: 'center', marginLeft: 4 } },
+        React.createElement('button', {
+          style: {
+            position: 'relative', width: 36, height: 36, borderRadius: '50%',
+            background: T.surface, border: `1px solid ${T.border}`, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }
+        },
+          React.createElement(Ic, { name: 'bell', size: 15, color: T.text, strokeWidth: 1.5 }),
+          React.createElement('div', {
+            style: {
+              position: 'absolute', top: 6, right: 8, width: 6, height: 6,
+              background: '#000000', borderRadius: '50%',
+              boxShadow: `0 0 0 2px ${T.surface}`
+            }
+          })
+        ),
+
+        // Role pill dropdown (B&W)
+        React.createElement('div', { style: { position: 'relative' } },
+          React.createElement('button', {
+            onClick: () => setRoleOpen(o => !o),
+            style: {
+              display: 'flex', alignItems: 'center', gap: 8, padding: '6px 14px 6px 6px',
+              background: T.surface, border: `1px solid ${T.border}`,
+              borderRadius: 'var(--r-pill)', cursor: 'pointer', fontFamily: T.font
+            }
+          },
+            React.createElement('div', {
+              style: {
+                width: 26, height: 26, background: '#000000',
+                borderRadius: '50%', color: '#ffffff', fontSize: 10.5, fontWeight: 500,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                letterSpacing: '-0.02em'
+              }
+            }, roleInfo.short),
+            React.createElement('span', { style: { fontSize: 13, fontWeight: 400, color: T.text, letterSpacing: '-0.005em' } },
+              roleInfo.label),
+            React.createElement(Ic, { name: 'chevdown', size: 11, color: T.textMute, strokeWidth: 1.4 })
+          ),
+          roleOpen && React.createElement('div', {
+            style: {
+              position: 'absolute', top: 'calc(100% + 8px)', right: 0,
+              background: T.surface, border: `1px solid ${T.border}`, borderRadius: 'var(--r-lg)',
+              boxShadow: 'var(--shadow-md)', minWidth: 220, overflow: 'hidden', zIndex: 20
+            }
+          },
+            React.createElement('div', {
+              className: 'mono-label',
+              style: { padding: '12px 16px 8px', fontSize: 10, color: T.textMute }
+            }, 'Chuyển vai trò (xem thử)'),
+            window.ROLES.map(r => React.createElement('button', {
+              key: r.key,
+              onClick: () => { setRole(r.key); setRoleOpen(false); },
+              style: {
+                width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                padding: '10px 16px', border: 'none',
+                background: r.key === role ? T.surface2 : 'transparent',
+                color: T.text,
+                fontSize: 13, fontWeight: r.key === role ? 500 : 400,
+                fontFamily: T.font, cursor: 'pointer', textAlign: 'left',
+                letterSpacing: '-0.005em'
+              },
+              onMouseEnter: e => { if (r.key !== role) e.currentTarget.style.background = T.surfaceAlt; },
+              onMouseLeave: e => { if (r.key !== role) e.currentTarget.style.background = 'transparent'; }
+            },
+              React.createElement(Ic, { name: r.icon, size: 14, color: T.text, strokeWidth: 1.4 }),
+              r.label,
+              r.key === role && React.createElement('span', {
+                style: { marginLeft: 'auto', color: T.text }
+              }, React.createElement(Ic, { name: 'check', size: 14, color: 'currentColor' }))
+            )),
+            React.createElement('div', { style: { height: 1, background: T.border } }),
+            React.createElement('button', {
+              onClick: () => { setRoleOpen(false); onLogout(); },
+              style: {
+                width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                padding: '10px 16px', border: 'none', background: 'transparent',
+                color: T.textMute, fontSize: 13, fontFamily: T.font, cursor: 'pointer', textAlign: 'left',
+                letterSpacing: '-0.005em'
+              }
+            },
+              React.createElement(Ic, { name: 'logout', size: 14, color: 'currentColor', strokeWidth: 1.4 }),
+              'Đăng xuất'
+            )
+          )
+        )
+      )
+    ),
+
+    // ── Body ────────────────────────────────────────────────────────
+    React.createElement('div', { style: { display: 'flex', flex: 1, overflow: 'hidden' } },
+
+      // Icon sidebar — circular icons per Figma
+      React.createElement('div', {
+        style: {
+          width: 68, background: T.surface, display: 'flex', flexDirection: 'column',
+          alignItems: 'center', flexShrink: 0,
+          borderRight: `1px solid ${T.border}`, padding: '12px 0', gap: 4
+        }
+      },
+        nav.map(item => {
+          const isActive = item.key === activeModule;
+          return React.createElement('div', {
+            key: item.key, title: item.label,
+            onClick: () => item.subs ? goto(item.subs[0].key) : goto(item.key),
+            style: {
+              width: 44, height: 44, display: 'flex', alignItems: 'center',
+              justifyContent: 'center', borderRadius: '50%', cursor: 'pointer',
+              background: isActive ? '#000000' : 'transparent',
+              color: isActive ? '#ffffff' : T.textMid,
+              transition: 'all .15s', position: 'relative', flexShrink: 0
+            },
+            onMouseEnter: e => { if (!isActive) { e.currentTarget.style.background = T.surface2; e.currentTarget.style.color = T.text; } },
+            onMouseLeave: e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.textMid; } }
+          },
+            React.createElement(Ic, { name: item.icon, size: 18, color: 'currentColor', strokeWidth: 1.5 })
+          );
+        }),
+        React.createElement('div', { style: { flex: 1 } }),
+        React.createElement('div', {
+          title: 'Cài đặt',
+          style: {
+            width: 44, height: 44, display: 'flex', alignItems: 'center',
+            justifyContent: 'center', borderRadius: '50%', cursor: 'pointer', color: T.textMid
+          },
+          onMouseEnter: e => { e.currentTarget.style.background = T.surface2; e.currentTarget.style.color = T.text; },
+          onMouseLeave: e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.textMid; }
+        }, React.createElement(Ic, { name: 'settings', size: 17, color: 'currentColor', strokeWidth: 1.5 })),
+        React.createElement('div', {
+          title: 'Đăng xuất', onClick: onLogout,
+          style: {
+            width: 44, height: 44, display: 'flex', alignItems: 'center',
+            justifyContent: 'center', borderRadius: '50%', cursor: 'pointer', color: T.textMid
+          },
+          onMouseEnter: e => { e.currentTarget.style.background = T.surface2; e.currentTarget.style.color = T.text; },
+          onMouseLeave: e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.textMid; }
+        }, React.createElement(Ic, { name: 'logout', size: 17, color: 'currentColor', strokeWidth: 1.5 }))
+      ),
+
+      // Sub-nav panel (only for modules with subs)
+      mod && mod.subs && React.createElement('div', {
+        style: {
+          width: 204, background: T.surface, flexShrink: 0,
+          borderRight: `1px solid ${T.border}`, display: 'flex', flexDirection: 'column',
+          overflow: 'hidden'
+        }
+      },
+        React.createElement('div', {
+          style: { padding: '18px 18px 14px', borderBottom: `1px solid ${T.border}` }
+        },
+          React.createElement('div', {
+            className: 'mono-label',
+            style: { fontSize: 10, color: T.textMute, marginBottom: 6 }
+          }, 'MODULE'),
+          React.createElement('div', {
+            style: { fontSize: 16, fontWeight: 500, color: T.text, letterSpacing: '-0.02em' }
+          }, mod.label)
+        ),
+        React.createElement('div', {
+          style: { flex: 1, overflowY: 'auto', padding: '10px 10px' }
+        },
+          mod.subs.map(sub => {
+            const isActive = sub.key === page;
+            return React.createElement('button', {
+              key: sub.key, onClick: () => goto(sub.key),
+              style: {
+                width: '100%', display: 'flex', alignItems: 'center', gap: 10,
+                padding: '9px 12px', border: 'none',
+                borderRadius: 'var(--r-pill)',
+                background: isActive ? '#000000' : 'transparent',
+                color: isActive ? '#ffffff' : T.textMid,
+                marginBottom: 3, textAlign: 'left', fontSize: 12.5,
+                fontWeight: 400,
+                fontFamily: T.font, cursor: 'pointer', transition: 'all .15s',
+                letterSpacing: '-0.005em'
+              },
+              onMouseEnter: e => { if (!isActive) { e.currentTarget.style.background = T.surface2; e.currentTarget.style.color = T.text; } },
+              onMouseLeave: e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = T.textMid; } }
+            },
+              React.createElement(Ic, { name: sub.icon, size: 13, color: 'currentColor', strokeWidth: 1.4 }),
+              sub.label
+            );
+          })
+        )
+      ),
+
+      // Main content
+      React.createElement('div', {
+        style: { flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', background: T.bg }
+      },
+        React.createElement('div', { className: 'page-enter', style: { flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' } }, children)
+      )
+    )
+  );
+};

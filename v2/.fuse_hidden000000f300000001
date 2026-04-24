@@ -1,0 +1,604 @@
+// components.js — Reusable primitives: Ic, Btn, Tag, FormField, FilterBar,
+// Pagination, DetailPanel, PageHeader, KPICard, MoneyCell, Modal, DataTable.
+// Everything attaches to `window.*` so pages can use them without imports.
+
+(function () {
+  // ── Icons (inline SVG) ──────────────────────────────────────────────
+  const ICON_PATHS = {
+    dashboard: 'M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z M9 22V12h6v10',
+    danhmuc:   'M4 6h16M4 10h16M4 14h16M4 18h16',
+    kho:       'M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 002 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z M3.27 6.96L12 12.01l8.73-5.05 M12 22.08V12',
+    tienthu:   'M12 2a10 10 0 100 20A10 10 0 0012 2z M12 6v6l4 2',
+    muahang:   'M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z M3 6h18 M16 10a4 4 0 01-8 0',
+    banhang:   'M22 12h-4l-3 9L9 3l-3 9H2',
+    baocao:    'M18 20V10 M12 20V4 M6 20v-6',
+    settings:  'M12 15a3 3 0 100-6 3 3 0 000 6z M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z',
+    logout:    'M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4 M16 17l5-5-5-5 M21 12H9',
+    search:    'M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z',
+    plus:      'M12 5v14M5 12h14',
+    filter:    'M22 3H2l8 9.46V19l4 2v-8.54L22 3z',
+    download:  'M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4 M7 10l5 5 5-5 M12 15V3',
+    refresh:   'M23 4v6h-6 M1 20v-6h6 M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15',
+    edit:      'M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7 M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z',
+    trash:     'M3 6h18 M19 6l-1 14H6L5 6 M10 11v6M14 11v6 M9 6V4h6v2',
+    x:         'M18 6L6 18M6 6l12 12',
+    chevdown:  'M6 9l6 6 6-6',
+    chevup:    'M18 15l-6-6-6 6',
+    chevright: 'M9 18l6-6-6-6',
+    chevleft:  'M15 18l-6-6 6-6',
+    save:      'M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z M17 21v-8H7v8 M7 3v5h8',
+    print:     'M6 9V2h12v7 M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2 M6 14h12v7H6z',
+    bell:      'M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9 M13.73 21a2 2 0 01-3.46 0',
+    user:      'M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2 M12 11a4 4 0 100-8 4 4 0 000 8z',
+    users:     'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2 M9 11a4 4 0 100-8 4 4 0 000 8z M23 21v-2a4 4 0 00-3-3.87 M16 3.13a4 4 0 010 7.75',
+    arrowIn:   'M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4 M17 8l-5-5-5 5 M12 3v13',
+    arrowOut:  'M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4 M7 10l5 5 5-5 M12 15V3',
+    transfer:  'M17 1l4 4-4 4 M3 11V9a4 4 0 014-4h14 M7 23l-4-4 4-4 M21 13v2a4 4 0 01-4 4H3',
+    check:     'M20 6L9 17l-5-5',
+    eye:       'M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z M12 9a3 3 0 100 6 3 3 0 000-6z',
+    building:  'M3 21h18 M9 21V7l6-4v18 M3 21V10l6-3',
+    package:   'M12 2l9 4.5v9L12 20l-9-4.5v-9L12 2z M12 2v18 M3 6.5l9 4.5 9-4.5',
+    bank:      'M3 21h18 M3 10h18 M5 6l7-3 7 3 M4 10v11M20 10v11M8 10v11M12 10v11M16 10v11',
+    receipt:   'M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z M14 2v6h6 M8 13h8 M8 17h5',
+    sparkle:   'M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1',
+  };
+
+  window.Ic = function ({ name, size = 16, color = 'currentColor', strokeWidth = 1.5 }) {
+    const d = ICON_PATHS[name] || ICON_PATHS.check;
+    const paths = d.split(' M').map((p, i) => (i === 0 ? p : 'M' + p));
+    return React.createElement('svg', {
+      width: size, height: size, viewBox: '0 0 24 24',
+      fill: 'none', stroke: color, strokeWidth,
+      strokeLinecap: 'round', strokeLinejoin: 'round'
+    }, paths.map((p, i) => React.createElement('path', { key: i, d: p })));
+  };
+
+  // ── MQtex Logo mark ────────────────────────────────────────────────
+  // Claude-warm: near-black tile with terracotta serif "M" — editorial feel.
+  window.LogoMark = function ({ size = 32 }) {
+    return React.createElement('div', {
+      style: {
+        width: size, height: size, background: T.text, borderRadius: 8,
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        color: T.terracotta, fontSize: size * 0.48, fontWeight: 500,
+        letterSpacing: -1,
+        position: 'relative', flexShrink: 0,
+        fontFamily: T.fontSerif
+      }
+    }, 'M');
+  };
+
+  // ── Shared styles (used everywhere; do not inline-duplicate) ────────
+  // Figma aesthetic: light column labels in mono, generous padding, subtle borders.
+  window.SS = {
+    th: {
+      padding: '12px 14px', textAlign: 'left', fontSize: 11, fontWeight: 500,
+      color: T.textMute, borderBottom: `1px solid ${T.border}`, whiteSpace: 'nowrap',
+      background: T.surface, textTransform: 'uppercase', letterSpacing: '0.06em',
+      fontFamily: T.font
+    },
+    td: {
+      padding: '12px 14px', color: T.text, fontSize: 12.5, verticalAlign: 'middle',
+      fontWeight: 400, letterSpacing: '-0.005em'
+    },
+    input: {
+      border: `1px solid ${T.border}`, borderRadius: 'var(--r)', padding: '8px 12px',
+      fontSize: 13, outline: 'none', width: '100%', fontFamily: T.font, color: T.text,
+      background: T.surface, transition: 'border-color .15s, box-shadow .15s',
+      fontWeight: 400
+    },
+    card: {
+      background: T.surface, borderRadius: 'var(--r-lg)',
+      border: `1px solid ${T.border}`, boxShadow: 'var(--shadow-sm)'
+    },
+  };
+
+  // ── Button ──────────────────────────────────────────────────────────
+  // Claude-style: warm surfaces, ring shadows, 8–12px radius (no pill).
+  // Primary = Terracotta · Outline = White with ring · Soft = Warm Sand
+  window.Btn = function ({ label, icon, onClick, variant = 'outline', small = false, disabled = false, style = {} }) {
+    const variants = {
+      primary: {
+        background: T.terracotta, color: '#FAF9F5', border: 'none',
+        boxShadow: `0 0 0 1px ${T.terracotta}`
+      },
+      gold:    {
+        background: T.coral, color: '#FAF9F5', border: 'none',
+        boxShadow: `0 0 0 1px ${T.coral}`
+      },
+      outline: {
+        background: '#FFFFFF', color: T.text, border: 'none',
+        boxShadow: `0 0 0 1px ${T.ringWarm}`
+      },
+      ghost: {
+        background: 'transparent', color: T.textMid, border: 'none',
+        boxShadow: 'none'
+      },
+      soft: {
+        background: T.warmSand, color: T.textMid, border: 'none',
+        boxShadow: `0 0 0 1px ${T.ringDeep}`
+      },
+      danger: {
+        background: '#FFFFFF', color: T.negative, border: 'none',
+        boxShadow: `0 0 0 1px ${T.ringWarm}`
+      },
+    };
+    const s = variants[variant] || variants.outline;
+    return React.createElement('button', {
+      onClick, disabled,
+      onMouseEnter: e => {
+        if (disabled) return;
+        if (variant === 'primary') e.currentTarget.style.background = T.terracottaHover;
+        else if (variant === 'gold') e.currentTarget.style.background = T.terracotta;
+        else if (variant === 'soft') e.currentTarget.style.background = T.surface2;
+        else if (variant === 'outline') e.currentTarget.style.background = T.warmSand;
+      },
+      onMouseLeave: e => {
+        if (disabled) return;
+        e.currentTarget.style.background = s.background;
+      },
+      style: {
+        display: 'inline-flex', alignItems: 'center', gap: 7,
+        padding: small ? '6px 14px' : '8px 18px',
+        borderRadius: small ? 'var(--r)' : 'var(--r-lg)',
+        fontSize: small ? 12.5 : 14, fontWeight: 500,
+        letterSpacing: 0,
+        fontFamily: T.font, transition: 'background .15s, box-shadow .15s',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        opacity: disabled ? 0.5 : 1, ...s, ...style
+      }
+    },
+      icon && React.createElement(Ic, { name: icon, size: small ? 12 : 14, color: 'currentColor', strokeWidth: 1.8 }),
+      label
+    );
+  };
+
+  // ── Tag / Status pill ───────────────────────────────────────────────
+  window.Tag = function ({ label, variant = 'green', small = false }) {
+    const map = { green: T.tagGreen, blue: T.tagBlue, red: T.tagRed, yellow: T.tagYellow, gray: T.tagGray };
+    const s = map[variant] || map.green;
+    return React.createElement('span', {
+      style: {
+        background: s.bg, color: s.color,
+        padding: small ? '3px 10px' : '4px 12px',
+        borderRadius: 'var(--r-2xl)', fontSize: small ? 11 : 12,
+        fontWeight: 500, whiteSpace: 'nowrap', display: 'inline-block',
+        letterSpacing: 0, border: 'none'
+      }
+    }, label);
+  };
+
+  // ── FormField ───────────────────────────────────────────────────────
+  window.FormField = function ({ label, value = '', placeholder = '', type = 'text', withBtn = false, span = 1, required = false }) {
+    const { useState } = React;
+    const [val, setVal] = useState(value);
+    return React.createElement('div', { style: { gridColumn: `span ${span}` } },
+      React.createElement('label', {
+        style: {
+          display: 'block', fontSize: 11.5, fontWeight: 400,
+          color: T.textMute, marginBottom: 6, letterSpacing: '-0.005em'
+        }
+      },
+        label, required && React.createElement('span', { style: { color: T.negative, marginLeft: 3 } }, '*')
+      ),
+      React.createElement('div', { style: { display: 'flex', gap: 6 } },
+        React.createElement('input', {
+          type, value: val, placeholder,
+          onChange: e => setVal(e.target.value),
+          onFocus: e => { e.target.style.borderColor = '#C96442'; e.target.style.boxShadow = `0 0 0 3px rgba(201,100,66,.12)`; },
+          onBlur:  e => { e.target.style.borderColor = T.border; e.target.style.boxShadow = 'none'; },
+          style: { ...SS.input, flex: 1, height: 36 }
+        }),
+        withBtn && React.createElement('button', {
+          type: 'button',
+          style: {
+            padding: '0 12px', border: `1px solid ${T.border}`, borderRadius: 'var(--r)',
+            background: T.surface, cursor: 'pointer',
+            display: 'flex', alignItems: 'center', color: T.text
+          }
+        }, React.createElement(Ic, { name: 'plus', size: 13, color: 'currentColor' }))
+      )
+    );
+  };
+
+  // ── FilterBar ───────────────────────────────────────────────────────
+  window.FilterBar = function ({ extra, right }) {
+    return React.createElement('div', {
+      style: {
+        background: T.surface, borderRadius: 'var(--r-lg) var(--r-lg) 0 0',
+        border: `1px solid ${T.border}`, borderBottom: 'none',
+        padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap'
+      }
+    },
+      React.createElement('div', {
+        style: {
+          display: 'flex', alignItems: 'center', gap: 5, padding: '6px 11px',
+          border: `1px solid ${T.border}`, borderRadius: 'var(--r)', background: T.surface2,
+          cursor: 'pointer', fontSize: 12.5, color: T.textMid
+        }
+      },
+        React.createElement(Ic, { name: 'filter', size: 12, color: T.textMute }),
+        'Lọc',
+        React.createElement(Ic, { name: 'chevdown', size: 11, color: T.textFaint })
+      ),
+      extra,
+      React.createElement('div', { style: { flex: 1 } }),
+      right,
+      React.createElement('div', {
+        style: {
+          display: 'flex', alignItems: 'center', gap: 6, padding: '6px 11px',
+          border: `1px solid ${T.border}`, borderRadius: 'var(--r)', background: T.surface, minWidth: 220
+        }
+      },
+        React.createElement(Ic, { name: 'search', size: 13, color: T.textFaint }),
+        React.createElement('input', {
+          placeholder: 'Tìm kiếm...',
+          style: {
+            border: 'none', outline: 'none', fontSize: 12.5,
+            background: 'transparent', flex: 1, fontFamily: T.font, color: T.textMid
+          }
+        })
+      ),
+      React.createElement('button', {
+        title: 'Làm mới',
+        style: {
+          padding: '6px 7px', border: `1px solid ${T.border}`,
+          borderRadius: 'var(--r)', background: T.surface2, cursor: 'pointer', display: 'flex'
+        }
+      }, React.createElement(Ic, { name: 'refresh', size: 14, color: T.textMute })),
+      React.createElement('button', {
+        title: 'Xuất Excel',
+        style: {
+          padding: '6px 7px', border: `1px solid ${T.border}`,
+          borderRadius: 'var(--r)', background: T.surface2, cursor: 'pointer', display: 'flex'
+        }
+      }, React.createElement(Ic, { name: 'download', size: 14, color: T.textMute }))
+    );
+  };
+
+  // ── Pagination ─────────────────────────────────────────────────────
+  window.Pagination = function ({ total = 429, perPage = 20, current = 1 }) {
+    const pages = Math.max(1, Math.ceil(total / perPage));
+    const showList = pages > 5 ? [1, 2, 3, '…', pages] : Array.from({ length: pages }, (_, i) => i + 1);
+    return React.createElement('div', {
+      style: {
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '10px 14px', background: T.surface, borderRadius: '0 0 var(--r-lg) var(--r-lg)',
+        border: `1px solid ${T.border}`, borderTop: 'none'
+      }
+    },
+      React.createElement('span', { style: { fontSize: 12, color: T.textMute } },
+        `Tổng: `, React.createElement('b', { className: 'num', style: { color: T.textMid } }, total.toLocaleString('vi-VN')), ` bản ghi`),
+      React.createElement('div', { style: { display: 'flex', gap: 4, alignItems: 'center' } },
+        React.createElement('span', { style: { fontSize: 12, color: T.textMute, marginRight: 6 } }, `${perPage} / trang`),
+        ...showList.map((p, i) =>
+          React.createElement('button', {
+            key: i,
+            style: {
+              padding: '5px 11px', border: '1px solid',
+              borderColor: p === current ? '#C96442' : T.border,
+              borderRadius: 'var(--r-pill)',
+              background: p === current ? '#C96442' : T.surface,
+              color: p === current ? '#ffffff' : T.textMid, fontSize: 12,
+              cursor: 'pointer', fontFamily: T.font, minWidth: 32, fontWeight: 400,
+              letterSpacing: '-0.005em'
+            }
+          }, p)
+        )
+      )
+    );
+  };
+
+  // ── DetailPanel ────────────────────────────────────────────────────
+  window.DetailPanel = function ({ open, onToggle, label, children }) {
+    return React.createElement('div', {
+      style: {
+        flex: open ? '0 0 42%' : '0 0 40px',
+        background: T.surface, border: `1px solid ${T.border}`,
+        borderRadius: 0, display: 'flex', flexDirection: 'column',
+        overflow: 'hidden', transition: 'flex .2s'
+      }
+    },
+      React.createElement('div', {
+        onClick: onToggle,
+        style: {
+          padding: '9px 14px', display: 'flex', alignItems: 'center', gap: 8,
+          background: T.surface2, borderTop: `2px solid ${T.border}`,
+          cursor: 'pointer', flexShrink: 0
+        }
+      },
+        React.createElement(Ic, { name: open ? 'chevdown' : 'chevup', size: 13, color: T.textMute }),
+        React.createElement('span', { style: { fontSize: 12.5, fontWeight: 600, color: T.textMid } }, 'Chi tiết chứng từ'),
+        label && React.createElement('span', { style: { fontSize: 11.5, color: T.textFaint } }, '— ' + label)
+      ),
+      open && React.createElement('div', { style: { flex: 1, overflow: 'auto' } }, children)
+    );
+  };
+
+  // ── PageHeader ─────────────────────────────────────────────────────
+  // Claude-style: serif title (editorial), sans subtitle, generous whitespace.
+  window.PageHeader = function ({ title, subtitle, actions }) {
+    return React.createElement('div', {
+      style: {
+        display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end',
+        marginBottom: 20, flexWrap: 'wrap', gap: 12
+      }
+    },
+      React.createElement('div', null,
+        React.createElement('h1', {
+          style: {
+            fontFamily: T.fontSerif,
+            fontSize: 28, fontWeight: 500, color: T.text, margin: 0,
+            letterSpacing: 0, lineHeight: 1.15
+          }
+        }, title),
+        subtitle && React.createElement('p', {
+          style: {
+            fontSize: 14, color: T.textMute, margin: '6px 0 0',
+            fontWeight: 400, lineHeight: 1.55, maxWidth: 640
+          }
+        }, subtitle)
+      ),
+      actions && React.createElement('div', { style: { display: 'flex', gap: 10, alignItems: 'center' } }, actions)
+    );
+  };
+
+  // ── KPICard ────────────────────────────────────────────────────────
+  // Claude-warm: ivory card, warm-sand icon badge, serif numeric value,
+  // olive-gray sub-text. Ring shadow instead of border.
+  window.KPICard = function ({ label, value, sub, tone = 'neutral', icon }) {
+    const toneMap = {
+      neutral:  { accent: T.text,       badge: T.warmSand,      badgeIcon: T.textMid },
+      positive: { accent: T.positive,   badge: T.tagGreen.bg,   badgeIcon: T.positive },
+      negative: { accent: T.negative,   badge: T.tagRed.bg,     badgeIcon: T.negative },
+      brand:    { accent: T.terracotta, badge: T.terracottaSoft, badgeIcon: T.terracotta },
+      gold:     { accent: T.coral,      badge: T.terracottaSoft, badgeIcon: T.coral },
+    };
+    const t = toneMap[tone] || toneMap.neutral;
+    return React.createElement('div', {
+      style: {
+        background: T.surface, borderRadius: 'var(--r-xl)',
+        padding: '20px 22px', flex: 1, minWidth: 0,
+        boxShadow: `0 0 0 1px ${T.border}`
+      }
+    },
+      // Top row — label + icon badge
+      React.createElement('div', {
+        style: {
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          marginBottom: 14
+        }
+      },
+        React.createElement('span', {
+          className: 'overline',
+          style: { color: T.textMute }
+        }, label),
+        icon && React.createElement('div', {
+          style: {
+            width: 32, height: 32, background: t.badge, borderRadius: 10,
+            display: 'flex', alignItems: 'center', justifyContent: 'center'
+          }
+        }, React.createElement(Ic, { name: icon, size: 15, color: t.badgeIcon, strokeWidth: 1.8 }))
+      ),
+      // Value — serif, book-title presence
+      React.createElement('div', {
+        style: {
+          fontFamily: T.fontSerif,
+          fontSize: 30, fontWeight: 500, color: t.accent, lineHeight: 1.1,
+          wordBreak: 'break-all', letterSpacing: 0,
+          fontVariantNumeric: 'tabular-nums'
+        }
+      }, value),
+      // Sub line
+      sub && React.createElement('div', {
+        style: {
+          fontSize: 13, color: T.textMute,
+          marginTop: 8, fontWeight: 400, lineHeight: 1.45,
+          display: 'flex', alignItems: 'center', gap: 4
+        }
+      }, sub)
+    );
+  };
+
+  // ── MoneyCell ──────────────────────────────────────────────────────
+  window.MoneyCell = function ({ value, tone = 'neutral', zero = 'show' }) {
+    const tones = { neutral: T.textMid, positive: T.positive, negative: T.negative, accent: T.brandRed, gold: T.warn };
+    const isZero = value === 0 || value === '0' || value == null || value === '';
+    if (isZero && zero === 'dash') {
+      return React.createElement('span', { className: 'num', style: { color: T.textFaint } }, '—');
+    }
+    return React.createElement('span', {
+      className: 'num',
+      style: { color: tones[tone] || tones.neutral, fontWeight: isZero ? 400 : 500 }
+    }, isZero ? '0' : fmtMoney(value));
+  };
+
+  // ── Modal (centered) ───────────────────────────────────────────────
+  window.Modal = function ({ title, subtitle, icon = 'receipt', onClose, onSave, saveLabel = 'Lưu', width = 680, children, footer }) {
+    return React.createElement('div', {
+      style: {
+        position: 'absolute', inset: 0, background: 'rgba(30,20,15,.35)',
+        zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20
+      },
+      onClick: onClose
+    },
+      React.createElement('div', {
+        onClick: e => e.stopPropagation(),
+        style: {
+          background: T.surface, borderRadius: 'var(--r-lg)', width,
+          maxWidth: '95vw', maxHeight: '92vh', overflow: 'hidden',
+          boxShadow: 'var(--shadow-lg)', display: 'flex', flexDirection: 'column'
+        }
+      },
+        // Header
+        React.createElement('div', {
+          style: {
+            padding: '14px 20px', borderBottom: `1px solid ${T.border}`,
+            display: 'flex', alignItems: 'center', gap: 12, background: T.surface2, flexShrink: 0
+          }
+        },
+          React.createElement('div', {
+            style: {
+              width: 38, height: 38, background: T.terracottaSoft, borderRadius: 10,
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }
+          }, React.createElement(Ic, { name: icon, size: 17, color: T.terracotta, strokeWidth: 1.8 })),
+          React.createElement('div', null,
+            React.createElement('div', { style: { fontSize: 16, fontWeight: 500, color: T.text, letterSpacing: '-0.015em' } }, title),
+            subtitle && React.createElement('div', { style: { fontSize: 12, color: T.textMute, fontWeight: 300, letterSpacing: '-0.005em' } }, subtitle)
+          ),
+          React.createElement('div', { style: { marginLeft: 'auto' } }),
+          React.createElement('button', {
+            onClick: onClose,
+            style: {
+              width: 32, height: 32, padding: 0, border: `1px solid ${T.border}`, borderRadius: '50%',
+              background: T.surface, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer'
+            }
+          }, React.createElement(Ic, { name: 'x', size: 14, color: T.text }))
+        ),
+        // Body
+        React.createElement('div', { style: { flex: 1, overflow: 'auto' } }, children),
+        // Footer
+        footer || React.createElement('div', {
+          style: {
+            padding: '12px 20px', borderTop: `1px solid ${T.border}`,
+            display: 'flex', justifyContent: 'space-between', flexShrink: 0, background: T.surface
+          }
+        },
+          React.createElement(Btn, { label: 'Hủy', variant: 'outline', onClick: onClose }),
+          React.createElement('div', { style: { display: 'flex', gap: 8 } },
+            React.createElement(Btn, { label: 'Cất', variant: 'outline', icon: 'save' }),
+            React.createElement(Btn, { label: saveLabel, variant: 'primary', icon: 'save', onClick: onSave })
+          )
+        )
+      )
+    );
+  };
+
+  // ── SlideOver (right-side drawer for big forms) ────────────────────
+  window.SlideOver = function ({ title, subtitle, icon, tone = 'red', onClose, width = '78%', children, footer, headerRight }) {
+    return React.createElement('div', {
+      style: { position: 'absolute', inset: 0, zIndex: 100, display: 'flex' }
+    },
+      React.createElement('div', {
+        style: { flex: 1, background: 'rgba(0,0,0,.30)' }, onClick: onClose
+      }),
+      React.createElement('div', {
+        style: {
+          width, background: T.surface, display: 'flex', flexDirection: 'column',
+          boxShadow: '-10px 0 40px rgba(0,0,0,.10)'
+        }
+      },
+        React.createElement('div', {
+          style: {
+            padding: '16px 24px', borderBottom: `1px solid ${T.border}`,
+            display: 'flex', alignItems: 'center', gap: 14, background: T.surface, flexShrink: 0
+          }
+        },
+          React.createElement('div', {
+            style: {
+              width: 42, height: 42, background: T.terracottaSoft, borderRadius: 12,
+              display: 'flex', alignItems: 'center', justifyContent: 'center'
+            }
+          }, React.createElement(Ic, { name: icon || 'receipt', size: 18, color: T.terracotta, strokeWidth: 1.8 })),
+          React.createElement('div', null,
+            React.createElement('div', { style: { fontSize: 17, fontWeight: 500, color: T.text, letterSpacing: '-0.02em' } }, title),
+            subtitle && React.createElement('div', { style: { fontSize: 12, color: T.textMute, fontWeight: 300 } }, subtitle)
+          ),
+          React.createElement('div', { style: { marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' } },
+            headerRight,
+            React.createElement('button', {
+              onClick: onClose,
+              style: {
+                width: 32, height: 32, padding: 0, border: `1px solid ${T.border}`, borderRadius: '50%',
+                background: T.surface, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                cursor: 'pointer'
+              }
+            }, React.createElement(Ic, { name: 'x', size: 14, color: T.text }))
+          )
+        ),
+        React.createElement('div', { style: { flex: 1, overflow: 'auto' } }, children),
+        footer
+      )
+    );
+  };
+
+  // ── DataTable ──────────────────────────────────────────────────────
+  // Generic row-selectable table. columns = [{ key, label, right, tone, link, render }]
+  window.DataTable = function ({ columns, rows, selectedId, onSelect, onRowClick, footer, rowKey = 'id' }) {
+    return React.createElement('table', {
+      style: { width: '100%', borderCollapse: 'collapse', fontSize: 12.5 }
+    },
+      React.createElement('thead', { style: { position: 'sticky', top: 0, zIndex: 1 } },
+        React.createElement('tr', null,
+          React.createElement('th', { style: { ...SS.th, width: 36 } },
+            React.createElement('input', { type: 'checkbox', style: { accentColor: T.brandRed } })
+          ),
+          ...columns.map(c =>
+            React.createElement('th', {
+              key: c.key,
+              style: { ...SS.th, textAlign: c.right ? 'right' : 'left', width: c.width }
+            }, c.label)
+          )
+        )
+      ),
+      React.createElement('tbody', null,
+        rows.map((row, i) => {
+          const isSel = selectedId === row[rowKey];
+          return React.createElement('tr', {
+            key: row[rowKey] ?? i,
+            onClick: () => onRowClick ? onRowClick(row) : (onSelect && onSelect(row[rowKey])),
+            style: {
+              background: isSel ? T.surface2 : T.surface,
+              cursor: 'pointer', borderBottom: `1px solid ${T.border}`,
+              transition: 'background .1s',
+              boxShadow: isSel ? `inset 2px 0 0 #000000` : 'none'
+            },
+            onMouseEnter: e => { if (!isSel) e.currentTarget.style.background = T.surfaceAlt; },
+            onMouseLeave: e => { if (!isSel) e.currentTarget.style.background = T.surface; }
+          },
+            React.createElement('td', { style: { padding: '12px 14px' } },
+              React.createElement('input', {
+                type: 'checkbox', checked: !!isSel, onChange: () => onSelect && onSelect(row[rowKey]),
+                onClick: e => e.stopPropagation(),
+                style: { accentColor: '#C96442' }
+              })
+            ),
+            ...columns.map(c => {
+              const val = c.render ? c.render(row) : row[c.key];
+              const tone = typeof c.tone === 'function' ? c.tone(row) : c.tone;
+              const color = c.link ? T.text
+                          : tone === 'positive' ? T.positive
+                          : tone === 'negative' ? T.negative
+                          : tone === 'accent'   ? T.text
+                          : SS.td.color;
+              return React.createElement('td', {
+                key: c.key,
+                style: {
+                  ...SS.td, textAlign: c.right ? 'right' : 'left',
+                  color, fontWeight: c.link ? 500 : (c.bold ? 500 : 400),
+                  textDecoration: c.link ? 'underline' : 'none',
+                  textDecorationThickness: c.link ? '1px' : undefined,
+                  textUnderlineOffset: c.link ? '3px' : undefined,
+                  fontVariantNumeric: c.right ? 'tabular-nums' : 'normal'
+                }
+              }, val);
+            })
+          );
+        })
+      ),
+      footer && React.createElement('tfoot', null, footer)
+    );
+  };
+
+  // ── Empty state ────────────────────────────────────────────────────
+  window.Empty = function ({ text = 'Chưa có dữ liệu' }) {
+    return React.createElement('div', {
+      style: {
+        padding: 40, textAlign: 'center', color: T.textFaint, fontSize: 13,
+        background: T.surface, border: `1px solid ${T.border}`, borderRadius: 'var(--r-lg)'
+      }
+    }, text);
+  };
+})();

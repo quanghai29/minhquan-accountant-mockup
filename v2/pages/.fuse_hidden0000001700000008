@@ -1,0 +1,164 @@
+// Login.js — Single sign-in (Figma B&W).
+// Only one login exists: the accountant. Roles are demonstrated via the
+// header pill switcher after sign-in. No role selection on this screen.
+
+window.PageLogin = function ({ onLogin }) {
+  const [user, setUser] = React.useState('admin');
+  const [pass, setPass] = React.useState('••••••••');
+
+  return React.createElement('div', {
+    style: {
+      height: '100vh', display: 'flex', background: T.surface, fontFamily: T.font,
+      overflow: 'hidden', letterSpacing: '-0.005em'
+    }
+  },
+    // ── Left: brand panel (pure black) ───────────────────────────
+    React.createElement('div', {
+      style: {
+        flex: '1 1 50%',
+        background: '#000000',
+        position: 'relative', color: '#ffffff', padding: '56px 60px',
+        display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+        overflow: 'hidden'
+      }
+    },
+      // Subtle decorative circles (glass white)
+      React.createElement('div', {
+        style: {
+          position: 'absolute', right: -140, top: -140, width: 420, height: 420,
+          background: 'rgba(255,255,255,0.04)', borderRadius: '50%'
+        }
+      }),
+      React.createElement('div', {
+        style: {
+          position: 'absolute', left: -100, bottom: -160, width: 340, height: 340,
+          background: 'rgba(255,255,255,0.03)', borderRadius: '50%'
+        }
+      }),
+
+      // Logo + brand
+      React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: 14, position: 'relative' } },
+        React.createElement('div', {
+          style: {
+            width: 46, height: 46, background: '#ffffff', borderRadius: 10,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#000000', fontSize: 18, fontWeight: 600, letterSpacing: -0.8,
+            fontFamily: T.font
+          }
+        }, 'MQ'),
+        React.createElement('div', { style: { lineHeight: 1.2 } },
+          React.createElement('div', { style: { fontWeight: 500, fontSize: 20, letterSpacing: '-0.02em' } }, 'MQtex BMS'),
+          React.createElement('div', {
+            className: 'mono-label',
+            style: { fontSize: 10.5, opacity: 0.7 }
+          }, 'Business Management System')
+        )
+      ),
+
+      // Hero message
+      React.createElement('div', { style: { position: 'relative', maxWidth: 480 } },
+        React.createElement('div', {
+          className: 'mono-label',
+          style: { fontSize: 11.5, opacity: 0.75, marginBottom: 16 }
+        }, 'CÔNG TY TNHH SÀI GÒN MQTEX'),
+        React.createElement('h1', {
+          style: {
+            fontSize: 46, fontWeight: 400, lineHeight: 1.08,
+            letterSpacing: '-0.035em', margin: 0
+          }
+        },
+          'Quản lý kinh doanh ',
+          React.createElement('span', { style: { fontWeight: 300, opacity: 0.85 } }, '& kế toán'),
+          ' thật đơn giản.'
+        ),
+        React.createElement('p', {
+          style: {
+            fontSize: 15, opacity: 0.75, marginTop: 20, lineHeight: 1.55,
+            fontWeight: 300, letterSpacing: '-0.01em'
+          }
+        }, 'Thay thế hệ thống cũ — giữ nguyên cách làm việc quen thuộc, nhanh hơn, gọn hơn.')
+      ),
+
+      // Footer
+      React.createElement('div', {
+        className: 'mono-label',
+        style: { display: 'flex', gap: 28, fontSize: 10.5, opacity: 0.55, position: 'relative' }
+      },
+        React.createElement('span', null, '© 2026 MQTEX'),
+        React.createElement('span', null, 'V2.0'),
+        React.createElement('span', null, 'MINHQUANTEX.COM')
+      )
+    ),
+
+    // ── Right: sign-in form ───────────────────────────────────
+    React.createElement('div', {
+      style: {
+        flex: '1 1 50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: 40, background: T.surface
+      }
+    },
+      React.createElement('div', { style: { width: '100%', maxWidth: 380 } },
+
+        React.createElement('div', {
+          className: 'mono-label',
+          style: { fontSize: 10.5, color: T.textMute, marginBottom: 10 }
+        }, 'ĐĂNG NHẬP'),
+        React.createElement('h2', {
+          style: { fontSize: 30, fontWeight: 400, color: T.text, margin: 0, letterSpacing: '-0.03em', lineHeight: 1.15 }
+        }, 'Chào mừng trở lại'),
+        React.createElement('p', {
+          style: { fontSize: 14, color: T.textMute, margin: '8px 0 32px', fontWeight: 300, letterSpacing: '-0.005em' }
+        }, 'Nhập tài khoản kế toán để vào hệ thống.'),
+
+        // Username
+        React.createElement('div', { style: { marginBottom: 16 } },
+          React.createElement('label', {
+            style: { display: 'block', fontSize: 11, fontWeight: 400, color: T.textMute, marginBottom: 6, letterSpacing: '-0.005em' }
+          }, 'Tên đăng nhập'),
+          React.createElement('input', {
+            value: user, onChange: e => setUser(e.target.value),
+            onFocus: e => { e.target.style.borderColor = '#000000'; e.target.style.boxShadow = '0 0 0 3px rgba(0,0,0,.06)'; },
+            onBlur:  e => { e.target.style.borderColor = T.border; e.target.style.boxShadow = 'none'; },
+            style: { ...SS.input, height: 42, fontSize: 14 }
+          })
+        ),
+        // Password
+        React.createElement('div', { style: { marginBottom: 24 } },
+          React.createElement('label', {
+            style: { display: 'block', fontSize: 11, fontWeight: 400, color: T.textMute, marginBottom: 6, letterSpacing: '-0.005em' }
+          }, 'Mật khẩu'),
+          React.createElement('input', {
+            type: 'password', value: pass, onChange: e => setPass(e.target.value),
+            onFocus: e => { e.target.style.borderColor = '#000000'; e.target.style.boxShadow = '0 0 0 3px rgba(0,0,0,.06)'; },
+            onBlur:  e => { e.target.style.borderColor = T.border; e.target.style.boxShadow = 'none'; },
+            style: { ...SS.input, height: 42, fontSize: 14 }
+          })
+        ),
+
+        React.createElement('button', {
+          onClick: () => onLogin(),
+          onMouseEnter: e => e.currentTarget.style.background = '#2E2E2E',
+          onMouseLeave: e => e.currentTarget.style.background = '#000000',
+          style: {
+            width: '100%', padding: '13px', background: '#000000', color: '#ffffff',
+            border: 'none', borderRadius: 'var(--r-pill)', fontSize: 14, fontWeight: 450,
+            cursor: 'pointer', fontFamily: T.font, letterSpacing: '-0.005em',
+            transition: 'background .15s'
+          }
+        }, 'Đăng nhập'),
+
+        React.createElement('div', {
+          style: {
+            marginTop: 24, padding: 14, background: T.surface2,
+            borderRadius: 'var(--r)', fontSize: 12, color: T.textMute,
+            border: `1px solid ${T.border}`, lineHeight: 1.55, fontWeight: 300,
+            letterSpacing: '-0.005em'
+          }
+        },
+          React.createElement('span', { className: 'mono-label', style: { color: T.text, fontSize: 10.5, marginRight: 6 } }, 'DEMO —'),
+          'Bấm "Đăng nhập" để vào hệ thống. Vai trò Kế toán / Bán hàng có thể xem thử bằng nút chuyển vai trò ở góc phải thanh tiêu đề.'
+        )
+      )
+    )
+  );
+};

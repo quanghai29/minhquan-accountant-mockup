@@ -1,0 +1,276 @@
+// BaoCao.js — All reports: Tồn kho, Doanh thu, Đơn hàng, Công nợ thu/trả, Tài chính
+
+(function () {
+  // Shared report shell: header + period picker + table + totals footer
+  const ReportShell = ({ title, subtitle, filters, columns, rows, footer, extraContent }) => {
+    return React.createElement('div', {
+      style: { flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: '18px 22px 0' }
+    },
+      React.createElement(PageHeader, {
+        title, subtitle,
+        actions: React.createElement(React.Fragment, null,
+          React.createElement(Btn, { label: 'In', variant: 'outline', icon: 'print' }),
+          React.createElement(Btn, { label: 'Xuất Excel', variant: 'primary', icon: 'download' })
+        )
+      }),
+
+      // Period picker bar
+      React.createElement('div', {
+        style: {
+          background: T.surface, border: `1px solid ${T.border}`,
+          borderRadius: 'var(--r-lg)', padding: '12px 14px', marginBottom: 12,
+          display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center'
+        }
+      },
+        React.createElement('span', { style: { fontSize: 12, fontWeight: 600, color: T.textMute, textTransform: 'uppercase', letterSpacing: 0.4 } }, 'Kỳ báo cáo'),
+        ['Tháng này', 'Quý này', 'Năm nay', 'Tùy chọn'].map((p, i) =>
+          React.createElement('button', {
+            key: i,
+            style: {
+              padding: '6px 14px', fontSize: 12.5,
+              background: i === 0 ? '#000000' : T.surface,
+              color:      i === 0 ? '#ffffff' : T.textMid,
+              border: `1px solid ${i === 0 ? '#000000' : T.border}`,
+              borderRadius: 'var(--r-pill)', cursor: 'pointer', fontFamily: T.font,
+              fontWeight: i === 0 ? 450 : 400, letterSpacing: '-0.005em'
+            }
+          }, p)
+        ),
+        React.createElement('div', { style: { width: 1, height: 22, background: T.border, margin: '0 4px' } }),
+        React.createElement('span', { style: { fontSize: 12.5, color: T.textMid } }, 'Từ'),
+        React.createElement('input', { defaultValue: '01/04/2026', style: { ...SS.input, width: 110, padding: '5px 8px' } }),
+        React.createElement('span', { style: { fontSize: 12.5, color: T.textMid } }, 'Đến'),
+        React.createElement('input', { defaultValue: '30/04/2026', style: { ...SS.input, width: 110, padding: '5px 8px' } }),
+        filters && React.createElement('div', { style: { flex: 1 } }),
+        filters
+      ),
+
+      extraContent,
+
+      React.createElement('div', {
+        style: { flex: 1, overflow: 'auto', background: T.surface, border: `1px solid ${T.border}`, borderRadius: 'var(--r-lg)' }
+      },
+        React.createElement(DataTable, { columns, rows, rowKey: 'ma', footer })
+      )
+    );
+  };
+
+  // Total row helper
+  const totalRow = (cols, totals) =>
+    React.createElement('tr', { style: { background: '#000000', color: '#ffffff' } },
+      React.createElement('td', { style: { padding: '14px' } }),
+      ...cols.map((c, i) => React.createElement('td', {
+        key: i,
+        style: {
+          padding: '14px', textAlign: c.right ? 'right' : 'left',
+          fontSize: 12.5, color: '#ffffff', fontWeight: 500,
+          letterSpacing: '-0.005em',
+          fontVariantNumeric: c.right ? 'tabular-nums' : 'normal'
+        }
+      }, totals[i] || ''))
+    );
+
+  // ── BC Tồn kho ─────────────────────────────────────────────
+  window.PageBCTonKho = function () {
+    const cols = [
+      { key: 'kho',     label: 'Kho',                width: 130 },
+      { key: 'ma',      label: 'Mã',                 width: 140, bold: true },
+      { key: 'ten',     label: 'Tên hàng hóa' },
+      { key: 'dvt',     label: 'ĐVT',                width: 60 },
+      { key: 'dk_sl',   label: 'Đầu kỳ — SL',        right: true, render: r => r.dk_sl ? r.dk_sl.toLocaleString('vi-VN') : '0' },
+      { key: 'dk_gt',   label: 'Đầu kỳ — GT',        right: true, render: r => React.createElement(MoneyCell, { value: r.dk_gt, zero: 'dash' }) },
+      { key: 'nhap_sl', label: 'Nhập — SL',          right: true, render: r => r.nhap_sl ? r.nhap_sl.toLocaleString('vi-VN') : '0' },
+      { key: 'nhap_gt', label: 'Nhập — GT',          right: true, render: r => React.createElement(MoneyCell, { value: r.nhap_gt, zero: 'dash', tone: 'positive' }) },
+      { key: 'xuat_sl', label: 'Xuất — SL',          right: true, render: r => r.xuat_sl ? r.xuat_sl.toLocaleString('vi-VN') : '0' },
+      { key: 'xuat_gt', label: 'Xuất — GT',          right: true, render: r => React.createElement(MoneyCell, { value: r.xuat_gt, zero: 'dash', tone: 'negative' }) },
+      { key: 'ck_sl',   label: 'Cuối kỳ — SL',       right: true, render: r => r.ck_sl ? r.ck_sl.toLocaleString('vi-VN') : '0', bold: true },
+      { key: 'ck_gt',   label: 'Cuối kỳ — GT',       right: true, render: r => React.createElement(MoneyCell, { value: r.ck_gt, zero: 'dash', tone: 'neutral' }), bold: true },
+    ];
+    const sumGt = (k) => MOCK.bcTonKho.reduce((s, r) => s + (r[k] || 0), 0);
+    return React.createElement(ReportShell, {
+      title: 'Tổng hợp tồn kho',
+      subtitle: 'Bảng cân đối nhập — xuất — tồn theo kho và mặt hàng',
+      columns: cols, rows: MOCK.bcTonKho,
+      footer: totalRow(cols, ['', '', 'TỔNG CỘNG', '', '', fmtMoney(sumGt('dk_gt')), '', fmtMoney(sumGt('nhap_gt')), '', fmtMoney(sumGt('xuat_gt')), '', fmtMoney(sumGt('ck_gt'))])
+    });
+  };
+
+  // ── BC Doanh thu ───────────────────────────────────────────
+  window.PageBCDoanhThu = function () {
+    // Group banHang by customer
+    const byKH = {};
+    MOCK.banHang.forEach(r => {
+      if (!byKH[r.ma_kh]) byKH[r.ma_kh] = { ma: r.ma_kh, ten: r.kh, so_ct: 0, doanh_thu: 0, da_thu: 0 };
+      byKH[r.ma_kh].so_ct += 1;
+      byKH[r.ma_kh].doanh_thu += r.tong;
+      byKH[r.ma_kh].da_thu += (r.tt_thanh_toan === 'Đã thanh toán' ? r.tong : 0);
+    });
+    const rows = Object.values(byKH).map(r => ({ ...r, con_thu: r.doanh_thu - r.da_thu }));
+    const cols = [
+      { key: 'ma',        label: 'Mã KH',         width: 110, bold: true, link: true },
+      { key: 'ten',       label: 'Khách hàng' },
+      { key: 'so_ct',     label: 'Số chứng từ',   right: true, width: 120 },
+      { key: 'doanh_thu', label: 'Doanh thu',     right: true, render: r => React.createElement(MoneyCell, { value: r.doanh_thu, tone: 'neutral' }), bold: true },
+      { key: 'da_thu',    label: 'Đã thu',        right: true, render: r => React.createElement(MoneyCell, { value: r.da_thu, tone: 'positive', zero: 'dash' }) },
+      { key: 'con_thu',   label: 'Còn phải thu',  right: true, render: r => React.createElement(MoneyCell, { value: r.con_thu, tone: 'negative', zero: 'dash' }) },
+    ];
+    const sum = (k) => rows.reduce((s, r) => s + (r[k] || 0), 0);
+    return React.createElement(ReportShell, {
+      title: 'Báo cáo doanh thu',
+      subtitle: 'Doanh thu bán hàng phân tích theo khách hàng',
+      extraContent: React.createElement('div', { style: { display: 'flex', gap: 10, marginBottom: 12 } },
+        React.createElement(KPICard, { label: 'Tổng doanh thu', value: fmtMoney(sum('doanh_thu')), sub: `${rows.length} khách hàng`, tone: 'neutral', icon: 'banhang' }),
+        React.createElement(KPICard, { label: 'Đã thu',          value: fmtMoney(sum('da_thu')), sub: 'Tháng 04/2026',           tone: 'positive', icon: 'check' }),
+        React.createElement(KPICard, { label: 'Còn phải thu',    value: fmtMoney(sum('con_thu')), sub: 'Chờ thanh toán',         tone: 'neutral', icon: 'tienthu' })
+      ),
+      columns: cols, rows,
+      footer: totalRow(cols, ['', 'TỔNG CỘNG', String(rows.reduce((s, r) => s + r.so_ct, 0)), fmtMoney(sum('doanh_thu')), fmtMoney(sum('da_thu')), fmtMoney(sum('con_thu'))])
+    });
+  };
+
+  // ── BC Đơn hàng ────────────────────────────────────────────
+  window.PageBCDonHang = function () {
+    const cols = [
+      { key: 'so',          label: 'Số đơn',        width: 140, bold: true, link: true },
+      { key: 'ngay',        label: 'Ngày đặt',      width: 100 },
+      { key: 'kh',          label: 'Khách hàng' },
+      { key: 'nv_ban',      label: 'NV bán',        width: 90 },
+      { key: 'gt_don',      label: 'Giá trị đơn',   right: true, render: r => React.createElement(MoneyCell, { value: r.gt_don }) },
+      { key: 'gt_da_xuat',  label: 'Đã xuất',       right: true, render: r => React.createElement(MoneyCell, { value: r.gt_da_xuat, tone: 'positive' }) },
+      { key: 'thuc_thu',    label: 'Thực thu',      right: true, render: r => React.createElement(MoneyCell, { value: r.thuc_thu, tone: 'positive', zero: 'dash' }) },
+      { key: 'con_phai_thu',label: 'Còn phải thu',  right: true, render: r => React.createElement(MoneyCell, { value: r.con_phai_thu, tone: 'neutral', zero: 'dash' }) },
+      { key: 'tt_giao',     label: 'TT giao',       width: 130, render: r => React.createElement(Tag, { label: r.tt_giao, variant: r.tt_giao === 'Đã giao đủ' ? 'green' : 'yellow', small: true }) },
+    ];
+    const sum = (k) => MOCK.donDatHang.reduce((s, r) => s + (r[k] || 0), 0);
+    return React.createElement(ReportShell, {
+      title: 'Báo cáo đơn hàng',
+      subtitle: 'Theo dõi đơn đặt hàng — xuất — thu tiền',
+      columns: cols, rows: MOCK.donDatHang.map(r => ({ ...r, ma: r.so })),
+      footer: totalRow(cols, ['', '', 'TỔNG CỘNG', '', fmtMoney(sum('gt_don')), fmtMoney(sum('gt_da_xuat')), fmtMoney(sum('thuc_thu')), fmtMoney(sum('con_phai_thu')), ''])
+    });
+  };
+
+  // ── BC Công nợ phải thu ───────────────────────────────────
+  window.PageBCCongNoThu = function () {
+    const cols = [
+      { key: 'ma',             label: 'Mã KH',              width: 110, bold: true, link: true },
+      { key: 'ten',            label: 'Khách hàng' },
+      { key: 'no_dau_ky',      label: 'Nợ đầu kỳ',          right: true, render: r => React.createElement(MoneyCell, { value: r.no_dau_ky, zero: 'dash' }) },
+      { key: 'phat_sinh_tang', label: 'Phát sinh tăng',     right: true, render: r => React.createElement(MoneyCell, { value: r.phat_sinh_tang, tone: 'positive', zero: 'dash' }) },
+      { key: 'phat_sinh_giam', label: 'Phát sinh giảm',     right: true, render: r => React.createElement(MoneyCell, { value: r.phat_sinh_giam, tone: 'negative', zero: 'dash' }) },
+      { key: 'no_cuoi_ky',     label: 'Nợ cuối kỳ',         right: true, render: r => React.createElement(MoneyCell, { value: r.no_cuoi_ky, tone: 'neutral' }), bold: true },
+    ];
+    const sum = (k) => MOCK.bcCongNoThu.reduce((s, r) => s + (r[k] || 0), 0);
+    return React.createElement(ReportShell, {
+      title: 'Công nợ phải thu',
+      subtitle: 'Tổng hợp công nợ phải thu của khách hàng',
+      extraContent: React.createElement('div', { style: { display: 'flex', gap: 10, marginBottom: 12 } },
+        React.createElement(KPICard, { label: 'Nợ đầu kỳ',      value: fmtMoney(sum('no_dau_ky')), sub: '01/04/2026', tone: 'neutral' }),
+        React.createElement(KPICard, { label: 'Phát sinh tăng', value: fmtMoney(sum('phat_sinh_tang')), sub: 'Bán hàng', tone: 'positive', icon: 'arrowIn' }),
+        React.createElement(KPICard, { label: 'Phát sinh giảm', value: fmtMoney(sum('phat_sinh_giam')), sub: 'Thu tiền', tone: 'negative', icon: 'arrowOut' }),
+        React.createElement(KPICard, { label: 'Nợ cuối kỳ',     value: fmtMoney(sum('no_cuoi_ky')), sub: '30/04/2026', tone: 'neutral', icon: 'tienthu' })
+      ),
+      columns: cols, rows: MOCK.bcCongNoThu,
+      footer: totalRow(cols, ['', 'TỔNG CỘNG', fmtMoney(sum('no_dau_ky')), fmtMoney(sum('phat_sinh_tang')), fmtMoney(sum('phat_sinh_giam')), fmtMoney(sum('no_cuoi_ky'))])
+    });
+  };
+
+  // ── BC Công nợ phải trả ───────────────────────────────────
+  window.PageBCCongNoTra = function () {
+    const cols = [
+      { key: 'ma',             label: 'Mã NCC',             width: 110, bold: true, link: true },
+      { key: 'ten',            label: 'Nhà cung cấp' },
+      { key: 'no_dau_ky',      label: 'Nợ đầu kỳ',          right: true, render: r => React.createElement(MoneyCell, { value: r.no_dau_ky, zero: 'dash' }) },
+      { key: 'phat_sinh_tang', label: 'Phát sinh tăng',     right: true, render: r => React.createElement(MoneyCell, { value: r.phat_sinh_tang, tone: 'negative', zero: 'dash' }) },
+      { key: 'phat_sinh_giam', label: 'Phát sinh giảm',     right: true, render: r => React.createElement(MoneyCell, { value: r.phat_sinh_giam, tone: 'positive', zero: 'dash' }) },
+      { key: 'no_cuoi_ky',     label: 'Nợ cuối kỳ',         right: true, render: r => React.createElement(MoneyCell, { value: r.no_cuoi_ky, tone: 'negative' }), bold: true },
+    ];
+    const sum = (k) => MOCK.bcCongNoTra.reduce((s, r) => s + (r[k] || 0), 0);
+    return React.createElement(ReportShell, {
+      title: 'Công nợ phải trả',
+      subtitle: 'Tổng hợp công nợ phải trả cho nhà cung cấp',
+      extraContent: React.createElement('div', { style: { display: 'flex', gap: 10, marginBottom: 12 } },
+        React.createElement(KPICard, { label: 'Nợ đầu kỳ',      value: fmtMoney(sum('no_dau_ky')), sub: '01/04/2026', tone: 'neutral' }),
+        React.createElement(KPICard, { label: 'Phát sinh tăng', value: fmtMoney(sum('phat_sinh_tang')), sub: 'Mua hàng', tone: 'negative', icon: 'arrowIn' }),
+        React.createElement(KPICard, { label: 'Phát sinh giảm', value: fmtMoney(sum('phat_sinh_giam')), sub: 'Trả tiền', tone: 'positive', icon: 'arrowOut' }),
+        React.createElement(KPICard, { label: 'Nợ cuối kỳ',     value: fmtMoney(sum('no_cuoi_ky')), sub: '30/04/2026', tone: 'neutral', icon: 'tienthu' })
+      ),
+      columns: cols, rows: MOCK.bcCongNoTra,
+      footer: totalRow(cols, ['', 'TỔNG CỘNG', fmtMoney(sum('no_dau_ky')), fmtMoney(sum('phat_sinh_tang')), fmtMoney(sum('phat_sinh_giam')), fmtMoney(sum('no_cuoi_ky'))])
+    });
+  };
+
+  // ── BC Tình hình tài chính ───────────────────────────────
+  window.PageBCTaiChinh = function () {
+    const tongTonKho = MOCK.bcTonKho.reduce((s, r) => s + (r.ck_gt || 0), 0);
+    const tongPhaiThu = MOCK.bcCongNoThu.reduce((s, r) => s + (r.no_cuoi_ky || 0), 0);
+    const tongPhaiTra = MOCK.bcCongNoTra.reduce((s, r) => s + (r.no_cuoi_ky || 0), 0);
+    const tienGui = MOCK.tkNH.reduce((s, r) => s + r.so_du, 0);
+    const tienMat = 275000000;
+
+    const lines = [
+      { label: 'Tiền mặt',              value: tienMat,     tone: 'positive' },
+      { label: 'Tiền gửi ngân hàng',    value: tienGui,     tone: 'positive' },
+      { label: 'Phải thu khách hàng',   value: tongPhaiThu, tone: 'neutral' },
+      { label: 'Hàng tồn kho',           value: tongTonKho,  tone: 'neutral' },
+      { label: 'Phải trả nhà cung cấp', value: -tongPhaiTra,tone: 'negative' },
+    ];
+    const tongTaiSan = tienMat + tienGui + tongPhaiThu + tongTonKho;
+    const vonChuSoHuu = tongTaiSan - tongPhaiTra;
+
+    return React.createElement('div', {
+      style: { flex: 1, overflow: 'auto', padding: '18px 22px' }
+    },
+      React.createElement(PageHeader, {
+        title: 'Tình hình tài chính',
+        subtitle: 'Bảng cân đối tài sản — nợ phải trả — vốn chủ sở hữu',
+        actions: React.createElement(Btn, { label: 'Xuất Excel', variant: 'primary', icon: 'download' })
+      }),
+
+      React.createElement('div', { style: { display: 'flex', gap: 10, marginBottom: 18 } },
+        React.createElement(KPICard, { label: 'Tổng tài sản',     value: fmtMoney(tongTaiSan),   sub: '30/04/2026', tone: 'neutral', icon: 'baocao' }),
+        React.createElement(KPICard, { label: 'Nợ phải trả',       value: fmtMoney(tongPhaiTra),  sub: 'Nhà cung cấp',tone: 'negative', icon: 'muahang' }),
+        React.createElement(KPICard, { label: 'Vốn chủ sở hữu',    value: fmtMoney(vonChuSoHuu), sub: 'Tài sản — Nợ',tone: 'positive', icon: 'tienthu' })
+      ),
+
+      React.createElement('div', { style: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 } },
+        React.createElement('div', { style: { ...SS.card, padding: 20 } },
+          React.createElement('h3', { style: { fontSize: 14, fontWeight: 700, color: T.text, margin: '0 0 14px' } }, 'TÀI SẢN'),
+          lines.slice(0, 4).map((l, i) => React.createElement('div', {
+            key: i, style: { display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: `1px solid ${T.border}` }
+          },
+            React.createElement('span', { style: { fontSize: 13, color: T.textMid } }, l.label),
+            React.createElement(MoneyCell, { value: l.value, tone: l.tone })
+          )),
+          React.createElement('div', {
+            style: { display: 'flex', justifyContent: 'space-between', padding: '14px 0 0', fontWeight: 700 }
+          },
+            React.createElement('span', { style: { fontSize: 13, color: T.text } }, 'TỔNG TÀI SẢN'),
+            React.createElement('span', { className: 'num', style: { fontSize: 17, color: T.text, fontWeight: 500, letterSpacing: '-0.02em' } }, fmtMoney(tongTaiSan))
+          )
+        ),
+        React.createElement('div', { style: { ...SS.card, padding: 20 } },
+          React.createElement('h3', { style: { fontSize: 14, fontWeight: 700, color: T.text, margin: '0 0 14px' } }, 'NGUỒN VỐN'),
+          React.createElement('div', {
+            style: { display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: `1px solid ${T.border}` }
+          },
+            React.createElement('span', { style: { fontSize: 13, color: T.textMid } }, 'Phải trả nhà cung cấp'),
+            React.createElement(MoneyCell, { value: tongPhaiTra, tone: 'negative' })
+          ),
+          React.createElement('div', {
+            style: { display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: `1px solid ${T.border}` }
+          },
+            React.createElement('span', { style: { fontSize: 13, color: T.textMid } }, 'Vốn chủ sở hữu'),
+            React.createElement(MoneyCell, { value: vonChuSoHuu, tone: 'positive' })
+          ),
+          React.createElement('div', {
+            style: { display: 'flex', justifyContent: 'space-between', padding: '14px 0 0', fontWeight: 700 }
+          },
+            React.createElement('span', { style: { fontSize: 13, color: T.text } }, 'TỔNG NGUỒN VỐN'),
+            React.createElement('span', { className: 'num', style: { fontSize: 17, color: T.text, fontWeight: 500, letterSpacing: '-0.02em' } }, fmtMoney(tongTaiSan))
+          )
+        )
+      )
+    );
+  };
+})();

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MQtex BMS — Hệ thống quản lý kinh doanh (v6 · Starbucks)</title>
+<!-- SoDoSans is proprietary; Inter is the closest humanist substitute per Starbucks spec -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+
+<style>
+/* ─────────────────────────────────────────────────────────────
+   DESIGN TOKENS — Theme: STARBUCKS (4-tier green + cream canvas)
+   Storefront-apron green anchors brand moments on a warm neutral
+   canvas. 50px full-pill buttons, scale(0.95) active. Weight-based
+   hierarchy, tight -0.01em tracking, Inter as SoDoSans substitute.
+   ───────────────────────────────────────────────────────────── */
+:root {
+  /* ── Four-tier green system (each tier a distinct role) ──────── */
+  --sbx-green:        #006241;   /* Starbucks Green — H1 brand headings */
+  --sbx-accent:       #00754A;   /* Green Accent — filled CTAs, Frap */
+  --sbx-house:        #1E3932;   /* House Green — deep feature bands */
+  --sbx-uplift:       #2B5148;   /* Green Uplift — decorative secondary */
+  --sbx-light:        #D4E9E2;   /* Green Light — valid-tint, soft bg */
+  --sbx-hover:        #004F32;   /* darker for hover states */
+
+  /* Gold — ONLY for ceremony (rewards-equivalent: year badge, premium) */
+  --sbx-gold:         #CBA258;
+  --sbx-gold-light:   #DFC49D;
+  --sbx-gold-lightest:#FAF6EE;
+
+  /* Legacy aliases (all resolve to Starbucks Green Accent) */
+  --brand-red:        #00754A;
+  --brand-red-hover:  #006241;
+  --brand-red-soft:   #D4E9E2;
+  --brand-red-10:     rgba(0,117,74,.08);
+  --brand-red-20:     rgba(0,117,74,.15);
+
+  --brand-gold:       #CBA258;
+  --brand-gold-soft:  #FAF6EE;
+  --brand-gold-10:    rgba(203,162,88,.08);
+
+  --accent:           #00754A;
+  --accent-hover:     #006241;
+  --accent-soft:      #D4E9E2;
+  --accent-secondary: #006241;
+  --accent-light:     #D4E9E2;
+
+  /* v4/v5 compatibility aliases */
+  --green-primary:    #00754A;
+  --green-secondary:  #006241;
+  --green-accent:     #D4E9E2;
+  --green-soft:       #D4E9E2;
+  --green-hover:      #006241;
+
+  /* Surfaces — warm cream canvas, white cards, house-green for dark bands */
+  --bg:               #F2F0EB;   /* Neutral Warm — primary page canvas */
+  --surface:          #FFFFFF;   /* White — card/modal surface */
+  --surface-2:        #EDEBE9;   /* Ceramic — zone separators */
+  --surface-alt:      #F9F9F9;   /* Neutral Cool — dropdowns, quiet containers */
+  --surface-hover:    #EDEBE9;
+  --house-green:      #1E3932;   /* Dark feature band surface */
+
+  /* Text — warm translucent black (never pure black) */
+  --text:             rgba(0,0,0,0.87);   /* Text Black */
+  --text-mid:         rgba(0,0,0,0.72);
+  --text-mute:        rgba(0,0,0,0.58);   /* Text Black Soft */
+  --text-faint:       rgba(0,0,0,0.40);
+
+  /* Borders — quiet warm neutral */
+  --border:           #D6DBDE;   /* Input Border — Starbucks form spec */
+  --border-strong:    #B8C0C4;
+  --border-focus:     #00754A;
+
+  /* Status */
+  --positive:         #006241;   /* on-brand green */
+  --negative:         #C82014;   /* Red — destructive */
+  --info:             #1E40AF;
+  --warn:             #FBBC05;   /* Yellow — warning */
+
+  /* Tags — harmonize with green-family palette */
+  --tag-green-bg:     #D4E9E2; --tag-green-fg: #006241;
+  --tag-red-bg:       #FADBD6; --tag-red-fg:   #C82014;
+  --tag-yellow-bg:    #FEEFC7; --tag-yellow-fg:#8A6A07;
+  --tag-blue-bg:      #E0EAFF; --tag-blue-fg:  #1E40AF;
+  --tag-gray-bg:      #EDEBE9; --tag-gray-fg:  rgba(0,0,0,0.72);
+
+  /* Shape — 50px FULL PILL for all buttons (Starbucks universal rule) */
+  --r-sm: 4px;
+  --r:    8px;
+  --r-md: 12px;    /* cards */
+  --r-lg: 12px;    /* cards, modals */
+  --r-xl: 16px;
+  --r-2xl: 24px;
+  --r-pill: 50px;  /* ALL buttons — no exceptions */
+
+  /* Elevation — whisper-soft layered shadows (Starbucks signature) */
+  --shadow-sm:   0 0 .5px rgba(0,0,0,.14), 0 1px 1px rgba(0,0,0,.24);
+  --shadow-md:   0 1px 3px rgba(0,0,0,.10), 0 2px 2px rgba(0,0,0,.06), 0 0 2px rgba(0,0,0,.07);
+  --shadow-lg:   0 0 6px rgba(0,0,0,.24), 0 8px 12px rgba(0,0,0,.14);
+  --shadow-frap: 0 0 6px rgba(0,0,0,.24), 0 8px 12px rgba(0,0,0,.14);
+
+  /* Typography — Inter (SoDoSans substitute), SoDoSans-style tight tracking */
+  --font:       'Inter', 'Be Vietnam Pro', -apple-system, system-ui, 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-serif: 'Inter', 'Be Vietnam Pro', -apple-system, system-ui, sans-serif; /* alias — Starbucks is sans-only */
+  --font-num:   'Inter', 'Be Vietnam Pro', ui-monospace, 'SF Mono', Monaco, Consolas, monospace;
+  --font-mono:  'Inter', 'Be Vietnam Pro', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  /* Spacing base — 8px system */
+  --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px; --s-5: 20px; --s-6: 24px; --s-8: 32px;
+
+  /* Starbucks signature interactions */
+  --button-active-scale: 0.95;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* Starbucks: tight -0.01em tracking globally, confident humanist sans */
+html, body, #root {
+  height: 100%;
+  font-family: var(--font);
+  overflow: hidden;
+  color: var(--text);
+  background: var(--bg);
+  font-feature-settings: "kern" 1, "tnum" 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  letter-spacing: -0.01em;
+}
+body { font-size: 14px; line-height: 1.5; font-weight: 400; }
+
+/* Cream-canvas scrollbars */
+::-webkit-scrollbar         { width: 10px; height: 10px; }
+::-webkit-scrollbar-track   { background: transparent; }
+::-webkit-scrollbar-thumb   { background: #C9CDC9; border-radius: 12px; border: 2px solid var(--bg); }
+::-webkit-scrollbar-thumb:hover { background: #A8ADA8; }
+
+/* Focus ring — Green Accent for keyboard navigation */
+:focus-visible {
+  outline: 2px solid var(--sbx-accent);
+  outline-offset: 2px;
+}
+button:focus, input:focus, textarea:focus, select:focus { outline: none; }
+button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+  outline: 2px solid var(--sbx-accent);
+  outline-offset: 2px;
+}
+
+/* Reset buttons */
+button { font-family: inherit; font-size: inherit; cursor: pointer; }
+input, select, textarea { font-family: inherit; }
+
+/* Tabular numbers for money columns */
+.num { font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1, "kern" 1; letter-spacing: 0; }
+
+/* Page entry transition */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px);} to { opacity: 1; transform: translateY(0);} }
+.page-enter { animation: fadeIn .2s ease-out; }
+
+/* Starbucks signature micro-interaction: scale(0.95) on active press */
+button:active:not(:disabled) { transform: scale(0.95); transition: transform .12s ease; }
+
+/* Serif utility — aliased to sans (Starbucks is sans-only for UI) */
+.serif { font-family: var(--font); font-weight: 600; letter-spacing: -0.01em; }
+
+/* Starbucks uppercase label */
+.overline {
+  font-family: var(--font);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 500;
+  font-size: 10.5px;
+  color: var(--text-mute);
+}
+
+.mono-label {
+  font-family: var(--font);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 500;
+  font-size: 10.5px;
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<!-- Shared foundations (load order matters) -->
+<script src="tokens.js"></script>
+<script src="components.js"></script>
+<script src="mock.js"></script>
+<script src="nav.js"></script>
+<script src="Layout.js"></script>
+
+<!-- Pages -->
+<script src="pages/Login.js"></script>
+<script src="pages/Dashboard.js"></script>
+<script src="pages/DanhMuc.js"></script>
+<script src="pages/Kho.js"></script>
+<script src="pages/TienThuChi.js"></script>
+<script src="pages/MuaHang.js"></script>
+<script src="pages/BanHang.js"></script>
+<script src="pages/BaoCao.js"></script>
+
+<script type="text/babel">
+// ── Page router ────────────────────────────────────────────
+const PAGE_MAP = {
+  dashboard:       () => React.createElement(PageDashboard, { setPage }),
+  // Danh mục
+  hanghoa:         () => React.createElement(PageHangHoa, null),
+  ncc:             () => React.createElement(PageNCC, null),
+  khachhang:       () => React.createElement(PageKhachHang, null),
+  nhanvien:        () => React.createElement(PageNhanVien, null),
+  phongban:        () => React.createElement(PagePhongBan, null),
+  kho_dm:          () => React.createElement(PageKhoDM, null),
+  dvt:             () => React.createElement(PageDVT, null),
+  nhom_vthh:       () => React.createElement(PageNhomVTHH, null),
+  tk_nganhang:     () => React.createElement(PageTKNganHang, null),
+  // Kho
+  nhapkho:         () => React.createElement(PageNhapKho, null),
+  xuatkho:         () => React.createElement(PageXuatKho, null),
+  // Thu/Chi
+  tienmat_thu:     () => React.createElement(PageTienMatThu, null),
+  tienmat_chi:     () => React.createElement(PageTienMatChi, null),
+  tiengui_thu:     () => React.createElement(PageTienGuiThu, null),
+  tiengui_chi:     () => React.createElement(PageTienGuiChi, null),
+  // Mua hàng
+  muahang_list:    () => React.createElement(PageMuaHang, null),
+  tralai_mua:      () => React.createElement(PageTraLaiMua, null),
+  // Bán hàng
+  donhang:         () => React.createElement(PageDonHang, null),
+  chungtubh:       () => React.createElement(PageChungTuBH, null),
+  tralai_ban:      () => React.createElement(PageTraLaiBan, null),
+  xuatkho_bh:      () => React.createElement(PageXuatKhoBH, null),
+  // Báo cáo
+  bc_tonkho:       () => React.createElement(PageBCTonKho, null),
+  bc_doanhthu:     () => React.createElement(PageBCDoanhThu, null),
+  bc_donhang:      () => React.createElement(PageBCDonHang, null),
+  bc_congno_thu:   () => React.createElement(PageBCCongNoThu, null),
+  bc_congno_tra:   () => React.createElement(PageBCCongNoTra, null),
+  bc_taichinh:     () => React.createElement(PageBCTaiChinh, null),
+};
+
+let setPage;
+
+const App = () => {
+  const saved = (() => { try { return localStorage.getItem('mq_page') || 'login'; } catch { return 'login'; } })();
+  const savedRole = (() => { try { return localStorage.getItem('mq_role') || 'ketoan'; } catch { return 'ketoan'; } })();
+
+  const [page, _setPage] = React.useState(saved);
+  const [role, setRole] = React.useState(savedRole);
+  setPage = _setPage;
+
+  React.useEffect(() => { localStorage.setItem('mq_page', page); }, [page]);
+  React.useEffect(() => { localStorage.setItem('mq_role', role); }, [role]);
+
+  // Auto-bounce to dashboard if current page not allowed for role
+  React.useEffect(() => {
+    if (page === 'login') return;
+    const allowed = window.isAllowed(page, role);
+    if (!allowed) _setPage('dashboard');
+  }, [role]);
+
+  if (page === 'login') {
+    return React.createElement(PageLogin, {
+      onLogin: () => { setRole('ketoan'); _setPage('dashboard'); }
+    });
+  }
+
+  const renderPage = PAGE_MAP[page]
+    ? PAGE_MAP[page]()
+    : React.createElement('div', { style:{ padding:40, color:'var(--text-mute)', fontSize:14 } },
+        `Trang "${page}" đang được phát triển.`);
+
+  return React.createElement(Layout, {
+    page, setPage: _setPage, role, setRole,
+    onLogout: () => _setPage('login')
+  }, renderPage);
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(React.createElement(App));
+</script>
+</body>
+</html>

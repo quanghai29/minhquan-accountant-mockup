@@ -1,0 +1,145 @@
+// Dashboard.js — Tổng quan: KPIs + quick actions + recent activity + inventory snapshot
+
+window.PageDashboard = function ({ setPage }) {
+  const today = '23/04/2026';
+
+  const kpis = [
+    { label: 'Doanh thu hôm nay', value: '79.5M', sub: '+12% so với hôm qua', tone: 'neutral', icon: 'banhang' },
+    { label: 'Công nợ phải thu',  value: '39.5M', sub: '4 khách hàng',         tone: 'neutral',    icon: 'tienthu' },
+    { label: 'Công nợ phải trả',  value: '49.4M', sub: '3 nhà cung cấp',        tone: 'neutral', icon: 'muahang' },
+    { label: 'Tồn kho (GT)',      value: '56.3M', sub: '6 mặt hàng',            tone: 'positive',icon: 'kho' },
+  ];
+
+  const quickLinks = [
+    { key:'donhang',   label:'Đơn hàng mới',     icon:'banhang', desc:'Tạo đơn đặt hàng' },
+    { key:'nhapkho',   label:'Nhập kho',          icon:'arrowIn', desc:'Ghi nhận hàng về kho' },
+    { key:'xuatkho',   label:'Xuất kho',          icon:'arrowOut',desc:'Xuất hàng sản xuất / bán' },
+    { key:'tienmat_thu', label:'Phiếu thu',       icon:'receipt', desc:'Thu tiền mặt' },
+    { key:'tienmat_chi', label:'Phiếu chi',       icon:'receipt', desc:'Chi tiền mặt' },
+    { key:'bc_doanhthu', label:'Báo cáo doanh thu', icon:'baocao', desc:'Theo kỳ / khách hàng' },
+  ];
+
+  return React.createElement('div', {
+    style: { flex: 1, overflow: 'auto', padding: '20px 24px' }
+  },
+    React.createElement(PageHeader, {
+      title: `Chào buổi sáng, Lê Quang Hải`,
+      subtitle: `Hôm nay ${today} · Năm tài chính 2026`,
+      actions: React.createElement(React.Fragment, null,
+        React.createElement(Btn, { label: 'Xuất báo cáo', variant: 'outline', icon: 'download' }),
+        React.createElement(Btn, { label: 'Tạo chứng từ', variant: 'primary', icon: 'plus' })
+      )
+    }),
+
+    // KPI row
+    React.createElement('div', { style: { display: 'flex', gap: 12, marginBottom: 18, flexWrap: 'wrap' } },
+      kpis.map((k, i) => React.createElement(KPICard, { key: i, ...k }))
+    ),
+
+    // Two columns: quick actions + recent activity
+    React.createElement('div', {
+      style: { display: 'grid', gridTemplateColumns: '1.3fr 1fr', gap: 16, marginBottom: 16 }
+    },
+      // Quick actions
+      React.createElement('div', { style: { ...SS.card, padding: 16 } },
+        React.createElement('div', {
+          style: { display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom: 12 }
+        },
+          React.createElement('h3', { style: { fontSize: 15, fontWeight: 500, color: T.text, margin: 0, letterSpacing: '-0.02em' } }, 'Thao tác nhanh'),
+          React.createElement('span', { className: 'mono-label', style: { fontSize: 10, color: T.textFaint } }, 'NGHIỆP VỤ HÀNG NGÀY')
+        ),
+        React.createElement('div', {
+          style: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }
+        },
+          quickLinks.map(ql => React.createElement('button', {
+            key: ql.key, onClick: () => setPage(ql.key),
+            style: {
+              padding: '16px 14px', background: T.surface, border: `1px solid ${T.border}`,
+              borderRadius: 'var(--r-lg)', cursor: 'pointer', textAlign: 'left',
+              fontFamily: T.font, transition: 'all .15s', display: 'flex',
+              flexDirection: 'column', gap: 8, letterSpacing: '-0.005em'
+            },
+            onMouseEnter: e => { e.currentTarget.style.borderColor = '#000000'; e.currentTarget.style.background = T.surface2; },
+            onMouseLeave: e => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.background = T.surface; }
+          },
+            React.createElement('div', {
+              style: {
+                width: 32, height: 32, borderRadius: '50%', background: '#000000',
+                display: 'flex', alignItems: 'center', justifyContent: 'center'
+              }
+            }, React.createElement(Ic, { name: ql.icon, size: 15, color: '#ffffff', strokeWidth: 1.5 })),
+            React.createElement('div', { style: { fontSize: 13, fontWeight: 500, color: T.text } }, ql.label),
+            React.createElement('div', { style: { fontSize: 12, color: T.textMute, fontWeight: 300 } }, ql.desc)
+          ))
+        )
+      ),
+
+      // Recent activity
+      React.createElement('div', { style: { ...SS.card, padding: 0, overflow: 'hidden' } },
+        React.createElement('div', {
+          style: { padding: '14px 16px', borderBottom: `1px solid ${T.border}`,
+            display: 'flex', justifyContent:'space-between', alignItems: 'center' }
+        },
+          React.createElement('h3', { style: { fontSize: 15, fontWeight: 500, color: T.text, margin: 0, letterSpacing: '-0.02em' } }, 'Hoạt động gần đây'),
+          React.createElement('span', {
+            onClick: () => setPage('muahang_list'),
+            style: { fontSize: 12, color: T.text, cursor: 'pointer', fontWeight: 400, textDecoration: 'underline', textUnderlineOffset: 3 }
+          }, 'Xem tất cả →')
+        ),
+        React.createElement('div', { style: { padding: '6px 4px' } },
+          MOCK.muaHang.slice(0, 4).map((r, i) => React.createElement('div', {
+            key: i,
+            style: {
+              display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px',
+              borderRadius: 'var(--r)', cursor: 'pointer'
+            },
+            onMouseEnter: e => e.currentTarget.style.background = T.surface2,
+            onMouseLeave: e => e.currentTarget.style.background = 'transparent'
+          },
+            React.createElement('div', {
+              style: {
+                width: 32, height: 32, borderRadius: '50%', background: T.surface2,
+                border: `1px solid ${T.border}`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+              }
+            }, React.createElement(Ic, { name: 'arrowIn', size: 14, color: T.text, strokeWidth: 1.5 })),
+            React.createElement('div', { style: { flex: 1, minWidth: 0 } },
+              React.createElement('div', {
+                style: { fontSize: 12.5, fontWeight: 600, color: T.text, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }
+              }, r.dien_giai),
+              React.createElement('div', { style: { fontSize: 11, color: T.textMute, fontWeight: 300 } }, `${r.so} · ${r.ngay}`)
+            ),
+            React.createElement(MoneyCell, { value: r.tong, tone: 'neutral', zero: 'dash' })
+          ))
+        )
+      )
+    ),
+
+    // Inventory snapshot
+    React.createElement('div', { style: { ...SS.card, padding: 0, overflow: 'hidden' } },
+      React.createElement('div', {
+        style: { padding: '14px 16px', borderBottom: `1px solid ${T.border}`,
+          display: 'flex', justifyContent:'space-between', alignItems: 'center' }
+      },
+        React.createElement('h3', { style: { fontSize: 15, fontWeight: 500, color: T.text, margin: 0, letterSpacing: '-0.02em' } }, 'Tổng hợp tồn kho'),
+        React.createElement('span', {
+          onClick: () => setPage('bc_tonkho'),
+          style: { fontSize: 12, color: T.text, cursor: 'pointer', fontWeight: 400, textDecoration: 'underline', textUnderlineOffset: 3 }
+        }, 'Báo cáo đầy đủ →')
+      ),
+      React.createElement('div', { style: { maxHeight: 240, overflow: 'auto' } },
+        React.createElement(DataTable, {
+          rowKey: 'ma',
+          columns: [
+            { key: 'kho',   label: 'Kho',          width: 140 },
+            { key: 'ma',    label: 'Mã',           width: 150, bold: true },
+            { key: 'ten',   label: 'Tên hàng hóa' },
+            { key: 'ck_sl', label: 'SL cuối kỳ',   right: true, render: r => r.ck_sl.toLocaleString('vi-VN') },
+            { key: 'ck_gt', label: 'Giá trị',      right: true, render: r => React.createElement(MoneyCell, { value: r.ck_gt, zero: 'dash' }) },
+          ],
+          rows: MOCK.bcTonKho
+        })
+      )
+    )
+  );
+};

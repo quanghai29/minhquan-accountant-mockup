@@ -1,0 +1,191 @@
+// Login.js — Single sign-in. Claude warm theme: parchment canvas, serif headline,
+// terracotta CTA, ring shadows. No role picker — the accountant logs in,
+// role preview is the header pill after sign-in.
+
+window.PageLogin = function ({ onLogin }) {
+  const [user, setUser] = React.useState('admin');
+  const [pass, setPass] = React.useState('••••••••');
+
+  return React.createElement('div', {
+    style: {
+      height: '100vh', display: 'flex', background: T.bg, fontFamily: T.font,
+      overflow: 'hidden'
+    }
+  },
+    // ── Left: brand panel (Parchment canvas with editorial layout) ──
+    React.createElement('div', {
+      style: {
+        flex: '1 1 52%',
+        background: T.bg,
+        position: 'relative', color: T.text, padding: '64px 72px',
+        display: 'flex', flexDirection: 'column', justifyContent: 'space-between',
+        overflow: 'hidden',
+        borderRight: `1px solid ${T.border}`
+      }
+    },
+      // Decorative warm circles
+      React.createElement('div', {
+        style: {
+          position: 'absolute', right: -160, top: -160, width: 460, height: 460,
+          background: T.terracottaSoft, borderRadius: '50%', opacity: 0.5
+        }
+      }),
+      React.createElement('div', {
+        style: {
+          position: 'absolute', left: -120, bottom: -180, width: 360, height: 360,
+          background: T.warmSand, borderRadius: '50%', opacity: 0.6
+        }
+      }),
+
+      // Logo + brand (serif)
+      React.createElement('div', { style: { display: 'flex', alignItems: 'center', gap: 14, position: 'relative' } },
+        React.createElement('div', {
+          style: {
+            width: 48, height: 48, background: T.text, borderRadius: 10,
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: T.terracotta, fontFamily: T.fontSerif,
+            fontSize: 24, fontWeight: 500, letterSpacing: -1
+          }
+        }, 'M'),
+        React.createElement('div', { style: { lineHeight: 1.2 } },
+          React.createElement('div', {
+            style: { fontFamily: T.fontSerif, fontWeight: 500, fontSize: 22, color: T.text, letterSpacing: 0 }
+          }, 'MQtex BMS'),
+          React.createElement('div', {
+            className: 'overline',
+            style: { color: T.textFaint, marginTop: 2 }
+          }, 'Business Management System')
+        )
+      ),
+
+      // Hero message — serif, book-title presence
+      React.createElement('div', { style: { position: 'relative', maxWidth: 520 } },
+        React.createElement('div', {
+          className: 'overline',
+          style: { color: T.terracotta, marginBottom: 20 }
+        }, 'CÔNG TY TNHH SÀI GÒN MQTEX'),
+        React.createElement('h1', {
+          style: {
+            fontFamily: T.fontSerif,
+            fontSize: 56, fontWeight: 500, lineHeight: 1.08,
+            letterSpacing: 0, margin: 0, color: T.text
+          }
+        },
+          'Quản lý kinh doanh ',
+          React.createElement('span', { style: { fontStyle: 'italic', color: T.terracotta } }, '& kế toán'),
+          ' thật thư thái.'
+        ),
+        React.createElement('p', {
+          style: {
+            fontSize: 17, color: T.textMute, marginTop: 24, lineHeight: 1.6,
+            fontWeight: 400
+          }
+        }, 'Thay thế hệ thống cũ — giữ nguyên cách làm việc quen thuộc. Ít ồn ào, nhiều không gian để đọc số liệu như đọc một trang sách.')
+      ),
+
+      // Footer
+      React.createElement('div', {
+        className: 'overline',
+        style: { display: 'flex', gap: 28, fontSize: 10.5, color: T.textFaint, position: 'relative' }
+      },
+        React.createElement('span', null, '© 2026 MQTEX'),
+        React.createElement('span', null, 'V5.0'),
+        React.createElement('span', null, 'MINHQUANTEX.COM')
+      )
+    ),
+
+    // ── Right: sign-in form (Ivory surface) ─────────────────────
+    React.createElement('div', {
+      style: {
+        flex: '1 1 48%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: 40, background: T.surface
+      }
+    },
+      React.createElement('div', { style: { width: '100%', maxWidth: 400 } },
+
+        React.createElement('div', {
+          className: 'overline',
+          style: { color: T.textMute, marginBottom: 14 }
+        }, 'ĐĂNG NHẬP'),
+        React.createElement('h2', {
+          style: {
+            fontFamily: T.fontSerif,
+            fontSize: 36, fontWeight: 500, color: T.text, margin: 0,
+            letterSpacing: 0, lineHeight: 1.15
+          }
+        }, 'Chào mừng trở lại'),
+        React.createElement('p', {
+          style: {
+            fontSize: 15, color: T.textMute, margin: '10px 0 36px',
+            fontWeight: 400, lineHeight: 1.55
+          }
+        }, 'Nhập tài khoản kế toán để vào hệ thống.'),
+
+        // Username
+        React.createElement('div', { style: { marginBottom: 18 } },
+          React.createElement('label', {
+            style: { display: 'block', fontSize: 12.5, fontWeight: 500, color: T.textMid, marginBottom: 8 }
+          }, 'Tên đăng nhập'),
+          React.createElement('input', {
+            value: user, onChange: e => setUser(e.target.value),
+            onFocus: e => { e.target.style.boxShadow = `0 0 0 2px ${T.info}`; },
+            onBlur:  e => { e.target.style.boxShadow = `0 0 0 1px ${T.ringWarm}`; },
+            style: {
+              width: '100%', height: 46, fontSize: 15, padding: '0 16px',
+              border: 'none', borderRadius: 'var(--r-lg)',
+              background: T.surface, color: T.text, fontFamily: T.font,
+              boxShadow: `0 0 0 1px ${T.ringWarm}`,
+              outline: 'none', transition: 'box-shadow .15s', fontWeight: 400
+            }
+          })
+        ),
+        // Password
+        React.createElement('div', { style: { marginBottom: 28 } },
+          React.createElement('label', {
+            style: { display: 'block', fontSize: 12.5, fontWeight: 500, color: T.textMid, marginBottom: 8 }
+          }, 'Mật khẩu'),
+          React.createElement('input', {
+            type: 'password', value: pass, onChange: e => setPass(e.target.value),
+            onFocus: e => { e.target.style.boxShadow = `0 0 0 2px ${T.info}`; },
+            onBlur:  e => { e.target.style.boxShadow = `0 0 0 1px ${T.ringWarm}`; },
+            style: {
+              width: '100%', height: 46, fontSize: 15, padding: '0 16px',
+              border: 'none', borderRadius: 'var(--r-lg)',
+              background: T.surface, color: T.text, fontFamily: T.font,
+              boxShadow: `0 0 0 1px ${T.ringWarm}`,
+              outline: 'none', transition: 'box-shadow .15s', fontWeight: 400
+            }
+          })
+        ),
+
+        React.createElement('button', {
+          onClick: () => onLogin(),
+          onMouseEnter: e => e.currentTarget.style.background = T.terracottaHover,
+          onMouseLeave: e => e.currentTarget.style.background = T.terracotta,
+          style: {
+            width: '100%', padding: '14px', background: T.terracotta, color: '#FAF9F5',
+            border: 'none', borderRadius: 'var(--r-lg)', fontSize: 15, fontWeight: 500,
+            cursor: 'pointer', fontFamily: T.font,
+            boxShadow: `0 0 0 1px ${T.terracotta}`,
+            transition: 'background .15s'
+          }
+        }, 'Đăng nhập'),
+
+        React.createElement('div', {
+          style: {
+            marginTop: 28, padding: 16, background: T.warmSand,
+            borderRadius: 'var(--r-lg)', fontSize: 13, color: T.textMid,
+            boxShadow: `0 0 0 1px ${T.ringDeep}`,
+            lineHeight: 1.6, fontWeight: 400
+          }
+        },
+          React.createElement('span', {
+            className: 'overline',
+            style: { color: T.terracotta, marginRight: 8 }
+          }, 'DEMO ·'),
+          'Bấm "Đăng nhập" để vào hệ thống. Vai trò Kế toán / Bán hàng có thể xem thử bằng nút chuyển vai trò ở góc phải thanh tiêu đề.'
+        )
+      )
+    )
+  );
+};

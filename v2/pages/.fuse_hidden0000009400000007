@@ -1,0 +1,170 @@
+// Kho.js — Nhập kho / Xuất kho list pages with DetailPanel
+// Columns mirror old MISA layout: Ngày HT · Số CT · Diễn giải · Tổng tiền · Mã đối tượng · Loại CT · Chức năng
+
+(function () {
+  // Reusable "document list + detail panel" layout for warehouse pages
+  const DocList = ({ title, subtitle, createLabel, rows, columns, detailRows, type, icon }) => {
+    const [sel, setSel] = React.useState(rows[0]?.id);
+    const [detailOpen, setDetailOpen] = React.useState(true);
+    const selectedRow = rows.find(r => r.id === sel);
+
+    return React.createElement('div', { style: { flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', padding: '18px 22px 0' } },
+      React.createElement(PageHeader, {
+        title, subtitle,
+        actions: React.createElement(React.Fragment, null,
+          React.createElement(Btn, { label: 'Nhập Excel',  variant: 'outline', icon: 'download' }),
+          React.createElement(Btn, { label: 'In chứng từ', variant: 'outline', icon: 'print' }),
+          React.createElement(Btn, { label: createLabel,   variant: 'primary', icon: 'plus' })
+        )
+      }),
+
+      React.createElement('div', { style: { flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', paddingBottom: 14, gap: 0 } },
+        React.createElement(FilterBar, {
+          extra: React.createElement('div', { style: { display: 'flex', gap: 6 } },
+            React.createElement('span', {
+              style: {
+                padding: '6px 13px', fontSize: 12.5, background: T.surface, color: T.text,
+                borderRadius: 'var(--r-pill)', fontWeight: 400, border: `1px solid ${T.border}`,
+                letterSpacing: '-0.005em'
+              }
+            }, type === 'in' ? 'Tất cả loại nhập' : 'Tất cả loại xuất')
+          )
+        }),
+
+        React.createElement('div', { style: { flex: 1, display: 'flex', overflow: 'hidden', border: `1px solid ${T.border}`, borderTop: 'none' } },
+          // Table
+          React.createElement('div', { style: { flex: 1, overflow: 'auto', background: T.surface } },
+            React.createElement(DataTable, {
+              rowKey: 'id', columns,
+              rows, selectedId: sel, onSelect: setSel, onRowClick: r => setSel(r.id)
+            })
+          ),
+          // Detail panel on right
+          detailOpen && selectedRow && React.createElement('div', {
+            style: {
+              width: 360, background: T.surface, borderLeft: `1px solid ${T.border}`,
+              display: 'flex', flexDirection: 'column'
+            }
+          },
+            React.createElement('div', {
+              style: {
+                padding: '12px 16px', borderBottom: `1px solid ${T.border}`, background: T.surface2,
+                display: 'flex', alignItems: 'center', gap: 10
+              }
+            },
+              React.createElement('div', {
+                style: {
+                  width: 38, height: 38, borderRadius: 10, background: T.terracottaSoft,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }
+              }, React.createElement(Ic, { name: icon, size: 17, color: T.terracotta, strokeWidth: 1.8 })),
+              React.createElement('div', { style: { flex: 1, minWidth: 0 } },
+                React.createElement('div', { style: { fontSize: 14, fontWeight: 500, color: T.text, letterSpacing: '-0.02em' } }, selectedRow.so),
+                React.createElement('div', { style: { fontSize: 11, color: T.textMute, fontWeight: 300 } }, selectedRow.ngay)
+              ),
+              React.createElement('button', {
+                onClick: () => setDetailOpen(false),
+                style: {
+                  padding: 6, border: `1px solid ${T.border}`, borderRadius: 'var(--r)',
+                  background: T.surface, cursor: 'pointer', display: 'flex'
+                }
+              }, React.createElement(Ic, { name: 'x', size: 13, color: T.textMute }))
+            ),
+            React.createElement('div', { style: { flex: 1, overflow: 'auto', padding: 14 } },
+              React.createElement('div', { className: 'mono-label', style: { fontSize: 10.5, color: T.textMute, marginBottom: 10 } }, 'THÔNG TIN CHỨNG TỪ'),
+              [
+                ['Ngày hạch toán', selectedRow.ngay],
+                ['Ngày chứng từ', selectedRow.ngay_ct],
+                ['Số chứng từ', selectedRow.so],
+                ['Đối tượng', selectedRow.doi_tuong || selectedRow.nguoi_nhan || '—'],
+                ['Loại chứng từ', selectedRow.loai],
+                ['Diễn giải', selectedRow.dien_giai],
+              ].map(([l, v]) => React.createElement('div', {
+                key: l, style: { display: 'flex', justifyContent: 'space-between', padding: '7px 0', borderBottom: `1px solid ${T.border}`, fontSize: 12 }
+              },
+                React.createElement('span', { style: { color: T.textMute } }, l),
+                React.createElement('span', { style: { color: T.text, fontWeight: 500, textAlign: 'right', maxWidth: '60%' } }, v)
+              )),
+
+              React.createElement('div', { className: 'mono-label', style: { fontSize: 10.5, color: T.textMute, marginTop: 18, marginBottom: 10 } }, 'CHI TIẾT HÀNG HÓA'),
+              React.createElement('div', { style: { background: T.surface2, borderRadius: 'var(--r)', padding: 12, border: `1px solid ${T.border}` } },
+                detailRows.map((d, i) => React.createElement('div', {
+                  key: i, style: { padding: '8px 0', borderBottom: i < detailRows.length - 1 ? `1px solid ${T.border}` : 'none' }
+                },
+                  React.createElement('div', { style: { fontSize: 12.5, fontWeight: 500, color: T.text, letterSpacing: '-0.005em' } }, d.ten),
+                  React.createElement('div', { style: { fontSize: 11, color: T.textMute, display: 'flex', justifyContent: 'space-between', marginTop: 3, fontWeight: 300 } },
+                    React.createElement('span', null, `${d.sl.toLocaleString('vi-VN')} ${d.dvt} × ${fmtMoney(d.don_gia)}`),
+                    React.createElement('span', { className: 'num', style: { color: T.text, fontWeight: 500 } }, fmtMoney(d.tt))
+                  )
+                ))
+              ),
+
+              React.createElement('div', {
+                style: {
+                  marginTop: 16, padding: '14px 16px', background: '#C96442', borderRadius: 'var(--r)',
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+                }
+              },
+                React.createElement('span', { className: 'mono-label', style: { fontSize: 10.5, color: '#ffffff', opacity: 0.8 } }, 'TỔNG TIỀN'),
+                React.createElement('span', { className: 'num', style: { fontSize: 18, fontWeight: 500, color: '#ffffff', letterSpacing: '-0.02em' } }, fmtMoney(selectedRow.tong || 0))
+              )
+            ),
+            React.createElement('div', {
+              style: { padding: 12, borderTop: `1px solid ${T.border}`, display: 'flex', gap: 8, background: T.surface2 }
+            },
+              React.createElement(Btn, { label: 'Sửa', variant: 'outline', icon: 'edit', style: { flex: 1, justifyContent: 'center' } }),
+              React.createElement(Btn, { label: 'In',  variant: 'outline', icon: 'print', style: { flex: 1, justifyContent: 'center' } }),
+              React.createElement(Btn, { label: 'Xóa', variant: 'danger',  icon: 'trash', style: { flex: 1, justifyContent: 'center' } })
+            )
+          )
+        ),
+
+        React.createElement(Pagination, { total: rows.length * 15, perPage: 20, current: 1 })
+      )
+    );
+  };
+
+  // ── Nhập kho ───────────────────────────────────────────────
+  window.PageNhapKho = function () {
+    return React.createElement(DocList, {
+      title: 'Nhập kho',
+      subtitle: 'Phiếu nhập kho từ mua hàng, trả lại hàng bán, điều chuyển',
+      createLabel: 'Thêm phiếu nhập',
+      icon: 'arrowIn',
+      type: 'in',
+      rows: MOCK.nhapKho,
+      detailRows: MOCK.chiTietKho,
+      columns: [
+        { key: 'ngay',      label: 'Ngày HT',        width: 100 },
+        { key: 'ngay_ct',   label: 'Ngày CT',        width: 100 },
+        { key: 'so',        label: 'Số CT',          width: 120, bold: true, link: true },
+        { key: 'dien_giai', label: 'Diễn giải' },
+        { key: 'tong',      label: 'Tổng tiền',      right: true, render: r => React.createElement(MoneyCell, { value: r.tong, tone: 'accent', zero: 'dash' }) },
+        { key: 'ma_dt',     label: 'Mã đối tượng',   width: 120, bold: true },
+        { key: 'loai',      label: 'Loại chứng từ',  width: 180, render: r => React.createElement(Tag, { label: r.loai, variant: 'blue', small: true }) },
+      ]
+    });
+  };
+
+  // ── Xuất kho ───────────────────────────────────────────────
+  window.PageXuatKho = function () {
+    return React.createElement(DocList, {
+      title: 'Xuất kho',
+      subtitle: 'Phiếu xuất kho sản xuất, bán hàng, điều chuyển',
+      createLabel: 'Thêm phiếu xuất',
+      icon: 'arrowOut',
+      type: 'out',
+      rows: MOCK.xuatKho,
+      detailRows: MOCK.chiTietKho,
+      columns: [
+        { key: 'ngay',       label: 'Ngày HT',         width: 100 },
+        { key: 'ngay_ct',    label: 'Ngày CT',         width: 100 },
+        { key: 'so',         label: 'Số CT',           width: 120, bold: true, link: true },
+        { key: 'dien_giai',  label: 'Diễn giải' },
+        { key: 'tong',       label: 'Tổng tiền',       right: true, render: r => React.createElement(MoneyCell, { value: r.tong, tone: 'accent', zero: 'dash' }) },
+        { key: 'nguoi_nhan', label: 'Người nhận',      width: 200 },
+        { key: 'loai',       label: 'Loại chứng từ',   width: 180, render: r => React.createElement(Tag, { label: r.loai, variant: r.loai.includes('bán') ? 'green' : 'yellow', small: true }) },
+      ]
+    });
+  };
+})();
